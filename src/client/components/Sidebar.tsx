@@ -15,6 +15,7 @@ export function Sidebar() {
   const [tab, setTab] = useState<TabId>('history');
   const history = useLibrary((s) => s.history);
   const collections = useLibrary((s) => s.collections);
+  const dbStatus = useLibrary((s) => s.dbStatus);
 
   return (
     <aside className="flex min-h-0 w-full flex-col bg-surface/40">
@@ -32,7 +33,7 @@ export function Sidebar() {
         {tab === 'history' ? <HistoryList /> : <CollectionsList />}
       </div>
       <p className="border-t border-border px-3 py-2 text-2xs leading-snug text-text-faint">
-        {t('sidebar.local_only')}
+        {dbStatus === 'ok' ? t('sidebar.server_storage') : t('sidebar.db_unavailable')}
       </p>
     </aside>
   );
@@ -42,7 +43,12 @@ function HistoryList() {
   const { t, lang } = useT();
   const history = useLibrary((s) => s.history);
   const clearAll = useLibrary((s) => s.clearAllHistory);
-  const loadSpec = useRequestStore((s) => s.loadSpec);
+  const loadFromHistory = useRequestStore((s) => s.loadFromHistory);
+  const dbStatus = useLibrary((s) => s.dbStatus);
+
+  if (dbStatus !== 'ok') {
+    return <Empty text={t('sidebar.db_unavailable')} />;
+  }
 
   if (history.length === 0) {
     return <Empty text={t('sidebar.empty_history')} />;
@@ -64,7 +70,7 @@ function HistoryList() {
       {history.map((entry) => (
         <button
           key={entry.id}
-          onClick={() => loadSpec(entry.spec)}
+          onClick={() => loadFromHistory(entry)}
           title={entry.url}
           className="group flex items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-surface-2"
         >
@@ -87,6 +93,11 @@ function HistoryList() {
 function CollectionsList() {
   const { t } = useT();
   const collections = useLibrary((s) => s.collections);
+  const dbStatus = useLibrary((s) => s.dbStatus);
+
+  if (dbStatus !== 'ok') {
+    return <Empty text={t('sidebar.db_unavailable')} />;
+  }
   const createCollection = useLibrary((s) => s.createCollection);
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState('');

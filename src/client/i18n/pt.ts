@@ -21,6 +21,10 @@ export const pt: Record<TranslationKey, string> = {
   'sidebar.requests_one': '1 requisição',
   'sidebar.requests_many': '{count} requisições',
   'sidebar.local_only': 'Histórico e coleções nunca saem deste navegador.',
+  'sidebar.server_storage':
+    'Histórico e coleções ficam no MySQL deste servidor (por workspace). Desative “Salvar histórico” para requisições anônimas.',
+  'sidebar.db_unavailable':
+    'Banco indisponível. Verifique o MySQL e execute npm run migrate.',
 
   'request.url_placeholder': 'Digite uma URL ou cole um comando cURL',
   'request.send': 'Enviar',
@@ -81,6 +85,9 @@ export const pt: Record<TranslationKey, string> = {
   'settings.use_proxy': 'Proxy do servidor',
   'settings.proxy_on_hint': 'As requisições passam pelo proxy do servidor para evitar CORS.',
   'settings.proxy_off_hint': 'As requisições são enviadas direto do navegador.',
+  'settings.save_history': 'Salvar histórico',
+  'settings.save_history_hint': 'Requisições bem-sucedidas são gravadas no banco do servidor.',
+  'settings.anonymous_hint': 'Modo anônimo: esta requisição não será salva no histórico.',
 
   'curl.copy': 'Copiar cURL',
   'curl.import': 'Importar cURL',

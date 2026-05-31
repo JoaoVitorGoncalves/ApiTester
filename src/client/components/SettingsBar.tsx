@@ -1,4 +1,5 @@
 import { useT } from '../i18n';
+import { usePrefs } from '../store/prefs';
 import { useRequestStore } from '../store/requestStore';
 import { Toggle } from './ui';
 
@@ -8,6 +9,8 @@ export function SettingsBar() {
   const setTimeout = useRequestStore((s) => s.setTimeout);
   const setFollowRedirects = useRequestStore((s) => s.setFollowRedirects);
   const setUseProxy = useRequestStore((s) => s.setUseProxy);
+  const saveHistory = usePrefs((s) => s.saveHistory);
+  const setSaveHistory = usePrefs((s) => s.setSaveHistory);
 
   return (
     <div className="flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-border bg-surface/40 px-4 py-2.5">
@@ -34,6 +37,14 @@ export function SettingsBar() {
         <span className="font-medium">{t('settings.use_proxy')}</span>
         <span className="hidden text-text-faint sm:inline">
           {spec.useProxy ? t('settings.proxy_on_hint') : t('settings.proxy_off_hint')}
+        </span>
+      </div>
+
+      <div className="flex items-center gap-2 text-xs text-text-dim">
+        <Toggle checked={saveHistory} onChange={setSaveHistory} label={t('settings.save_history')} />
+        <span className="font-medium">{t('settings.save_history')}</span>
+        <span className="hidden text-text-faint sm:inline">
+          {saveHistory ? t('settings.save_history_hint') : t('settings.anonymous_hint')}
         </span>
       </div>
     </div>

@@ -5,6 +5,7 @@ import {
   type Auth,
   type Body,
   type BodyMode,
+  type HistoryEntry,
   type Method,
   type RequestSpec,
   type ResponseResult,
@@ -44,6 +45,7 @@ interface RequestState {
   setFollowRedirects: (value: boolean) => void;
   setUseProxy: (value: boolean) => void;
   loadSpec: (spec: RequestSpec) => void;
+  loadFromHistory: (entry: HistoryEntry) => void;
   reset: () => void;
 
   send: () => Promise<void>;
@@ -68,6 +70,11 @@ export const useRequestStore = create<RequestState>((set, get) => ({
   setUseProxy: (useProxy) => set((s) => ({ spec: { ...s.spec, useProxy } })),
 
   loadSpec: (spec) => set({ spec: structuredClone(spec), response: null }),
+  loadFromHistory: (entry) =>
+    set({
+      spec: structuredClone(entry.spec),
+      response: structuredClone(entry.response),
+    }),
   reset: () => set({ spec: defaultRequest(), response: null }),
 
   send: async () => {

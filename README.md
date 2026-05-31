@@ -22,8 +22,9 @@ apiFlash is a single TypeScript app — a React + Vite client with a small [Hono
 - Auto-complete every field by pasting a cURL command (paste into the URL bar or use the import dialog).
 - Server-side request proxy to reduce browser CORS friction.
 - Response viewer with status, duration, size, body, headers and copy actions.
-- Local browser history for sent requests.
-- Persistent local collections of saved requests that can be run again.
+- Server-side history (full request + response + cURL) stored in MySQL.
+- Persistent collections of saved requests in MySQL.
+- Optional **anonymous mode**: disable “Save history” so successful requests are not written to the database.
 - Language toggle for Portuguese and English, plus a dark/light theme.
 
 ## Tech stack
@@ -33,19 +34,37 @@ apiFlash is a single TypeScript app — a React + Vite client with a small [Hono
 | Client | React 18 + Vite + TypeScript + Tailwind CSS |
 | State | Zustand |
 | Server | Hono (proxy route), mounted via `@hono/vite-dev-server` in dev and `@hono/node-server` in production |
-| Storage | IndexedDB (`idb`) for history and collections; `localStorage` for theme and language |
+| Storage | MySQL for history and collections; `localStorage` for theme, language, workspace id, and save-history preference |
 | Tests | Vitest |
 
 ## Getting started
 
-Requires Node.js 20+.
+Requires Node.js 20+ and MySQL 8+ (or MariaDB with JSON support).
+
+### Database setup
+
+1. Create the database (example for WAMP/phpMyAdmin):
+
+```sql
+CREATE DATABASE apiflash CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+2. Copy `.env.example` to `.env` and set your MySQL credentials.
+
+3. Run migrations:
 
 ```bash
 npm install
+npm run migrate
+```
+
+### Run the app
+
+```bash
 npm run dev
 ```
 
-Then open the URL printed by Vite (defaults to http://localhost:5173). The `/api/*` routes are served by Hono inside the same dev server, so the proxy works without a second process.
+Then open the URL printed by Vite (defaults to http://localhost:5173). The `/api/*` routes are served by Hono inside the same dev server, so the proxy and MySQL APIs work without a second process.
 
 ## Scripts
 
@@ -58,6 +77,7 @@ Then open the URL printed by Vite (defaults to http://localhost:5173). The `/api
 | `npm run preview` | Build everything and start the production server. |
 | `npm run test` | Run the Vitest suite. |
 | `npm run typecheck` | Type-check the whole project. |
+| `npm run migrate` | Apply SQL migrations to MySQL. |
 
 ### Production
 
@@ -81,11 +101,15 @@ To test APIs on `localhost` or your LAN, either:
 APIFLASH_ALLOW_PRIVATE=1 npm run start
 ```
 
-## Privacy
+## Privacy and workspaces
 
-apiFlash does not send your local history or collections to any external account. Data saved in history and collections stays in the current browser (IndexedDB) and never leaves it.
+History and collections are stored in **your** MySQL instance (this server installation), scoped by a workspace id sent from the browser (`X-ApiFlash-Workspace`). There is no login yet — anyone who can reach the same server shares the default workspace unless each browser uses its own generated workspace id.
 
-Avoid saving production credentials in a public demo deployment unless you control the environment. Anything you type into auth, headers or a body is sent to the target you choose (directly or via the proxy).
+- Turn off **Save history** in the request settings to send requests without persisting them (anonymous mode). The response is still visible in the UI for the current session only.
+- History entries include the full request (headers, auth, body) and response (body, headers). Do not store production secrets on a shared or public deployment.
+- Collections are always saved to the database when MySQL is available.
+
+Avoid saving production credentials in a public demo unless you control the environment. Anything you type into auth, headers or a body is sent to the target you choose (directly or via the proxy).
 
 ## Project layout
 
@@ -97,8 +121,10 @@ src/
     request.ts     Assemble a RequestSpec into a concrete request
     json.ts        JSON validate / format / minify
     curl/          cURL parse + build
-  server.ts        Hono app (mounts /api/proxy)
+  server.ts        Hono app (proxy + /api/history + /api/collections)
   server.node.ts   Production entry: serves dist/ + the API
+  server/db/       MySQL pool, repositories
   server/          Proxy handler and SSRF guard
-  client/          React app (components, stores, i18n, IndexedDB)
+  client/          React app (components, stores, i18n, API client)
+  migrations/      MySQL schema migrations
 ```

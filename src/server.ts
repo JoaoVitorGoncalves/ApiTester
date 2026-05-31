@@ -1,10 +1,21 @@
+import 'dotenv/config';
 import { Hono } from 'hono';
+import { isDbConfigured, pingDb } from './server/db/pool';
+import collectionsRoutes from './server/routes/collections';
+import historyRoutes from './server/routes/history';
 import { proxyHandler } from './server/proxy';
 
 const app = new Hono();
 
-app.get('/api/health', (c) => c.json({ ok: true, name: 'apiflash' }));
+app.get('/api/health', async (c) => {
+  const dbConfigured = isDbConfigured();
+  const db = dbConfigured ? ((await pingDb()) ? 'ok' : 'down') : 'not_configured';
+  return c.json({ ok: true, name: 'apiflash', db });
+});
 
 app.post('/api/proxy', proxyHandler);
+
+app.route('/api/history', historyRoutes);
+app.route('/api/collections', collectionsRoutes);
 
 export default app;

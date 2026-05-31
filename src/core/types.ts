@@ -127,4 +127,6 @@ export interface HistoryEntry {
   durationMs: number;
   at: number;
   spec: RequestSpec;
+  response: ResponseResult;
+  curl?: string;
 }

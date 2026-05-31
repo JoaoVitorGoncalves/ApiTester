@@ -1,0 +1,12 @@
+CREATE TABLE IF NOT EXISTS workspaces (
+  id CHAR(36) NOT NULL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  created_at BIGINT UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO workspaces (id, name, created_at)
+VALUES (
+  '00000000-0000-0000-0000-000000000001',
+  'default',
+  UNIX_TIMESTAMP() * 1000
+);

@@ -1,25 +1,28 @@
 import { create } from 'zustand';
+import { toHistoryEntry } from '@core/history';
+import type { Collection, HistoryEntry, RequestSpec, ResponseResult, SavedRequest } from '@core/types';
+import { uid } from '@core/types';
 import {
-  uid,
-  type Collection,
-  type HistoryEntry,
-  type RequestSpec,
-  type ResponseResult,
-  type SavedRequest,
-} from '@core/types';
-import {
-  clearHistory,
-  deleteCollection as dbDeleteCollection,
-  loadCollections,
-  loadHistory,
-  pushHistory,
-  saveCollection,
-} from '../db/storage';
+  addSavedRequestApi,
+  ApiError,
+  checkDbHealth,
+  clearHistoryApi,
+  createCollectionApi,
+  deleteCollectionApi,
+  fetchCollections,
+  fetchHistory,
+  postHistory,
+  removeSavedRequestApi,
+  renameCollectionApi,
+} from '../api/library';
+import { usePrefs } from './prefs';
 
 interface LibraryState {
   history: HistoryEntry[];
   collections: Collection[];
   loaded: boolean;
+  dbStatus: 'ok' | 'down' | 'not_configured' | 'unknown';
+  lastError: string | null;
 
   init: () => Promise<void>;
   clearAllHistory: () => Promise<void>;
@@ -34,46 +37,51 @@ export const useLibrary = create<LibraryState>((set, get) => ({
   history: [],
   collections: [],
   loaded: false,
+  dbStatus: 'unknown',
+  lastError: null,
 
   init: async () => {
     if (get().loaded) return;
-    const [history, collections] = await Promise.all([loadHistory(), loadCollections()]);
-    set({ history, collections, loaded: true });
+    const dbStatus = await checkDbHealth();
+    if (dbStatus !== 'ok') {
+      set({ loaded: true, dbStatus, lastError: dbStatus === 'down' ? 'database_unavailable' : null });
+      return;
+    }
+    try {
+      const [history, collections] = await Promise.all([fetchHistory(), fetchCollections()]);
+      set({ history, collections, loaded: true, dbStatus: 'ok', lastError: null });
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : 'Failed to load library.';
+      set({ loaded: true, dbStatus: 'down', lastError: message });
+    }
   },
 
   clearAllHistory: async () => {
-    await clearHistory();
+    await clearHistoryApi();
     set({ history: [] });
   },
 
   createCollection: async (name) => {
-    const collection: Collection = {
-      id: uid('col'),
-      name: name.trim() || 'Collection',
-      requests: [],
-      createdAt: Date.now(),
-    };
-    await saveCollection(collection);
+    const collection = await createCollectionApi(uid('col'), name.trim() || 'Collection', Date.now());
     set((s) => ({ collections: [...s.collections, collection] }));
     return collection;
   },
 
   renameCollection: async (id, name) => {
-    const collection = get().collections.find((c) => c.id === id);
-    if (!collection) return;
-    const updated: Collection = { ...collection, name: name.trim() || collection.name };
-    await saveCollection(updated);
-    set((s) => ({ collections: s.collections.map((c) => (c.id === id ? updated : c)) }));
+    await renameCollectionApi(id, name.trim());
+    set((s) => ({
+      collections: s.collections.map((c) =>
+        c.id === id ? { ...c, name: name.trim() || c.name } : c,
+      ),
+    }));
   },
 
   deleteCollection: async (id) => {
-    await dbDeleteCollection(id);
+    await deleteCollectionApi(id);
     set((s) => ({ collections: s.collections.filter((c) => c.id !== id) }));
   },
 
   saveRequest: async (collectionId, name, spec) => {
-    const collection = get().collections.find((c) => c.id === collectionId);
-    if (!collection) return;
     const now = Date.now();
     const saved: SavedRequest = {
       id: uid('req'),
@@ -82,34 +90,38 @@ export const useLibrary = create<LibraryState>((set, get) => ({
       createdAt: now,
       updatedAt: now,
     };
-    const updated: Collection = { ...collection, requests: [...collection.requests, saved] };
-    await saveCollection(updated);
-    set((s) => ({ collections: s.collections.map((c) => (c.id === collectionId ? updated : c)) }));
+    await addSavedRequestApi(collectionId, saved);
+    set((s) => ({
+      collections: s.collections.map((c) =>
+        c.id === collectionId ? { ...c, requests: [...c.requests, saved] } : c,
+      ),
+    }));
   },
 
   removeSavedRequest: async (collectionId, requestId) => {
-    const collection = get().collections.find((c) => c.id === collectionId);
-    if (!collection) return;
-    const updated: Collection = {
-      ...collection,
-      requests: collection.requests.filter((r) => r.id !== requestId),
-    };
-    await saveCollection(updated);
-    set((s) => ({ collections: s.collections.map((c) => (c.id === collectionId ? updated : c)) }));
+    await removeSavedRequestApi(collectionId, requestId);
+    set((s) => ({
+      collections: s.collections.map((c) =>
+        c.id === collectionId
+          ? { ...c, requests: c.requests.filter((r) => r.id !== requestId) }
+          : c,
+      ),
+    }));
   },
 }));
 
-/** Append a completed request to local history (called from the request store). */
+/** Append a completed request to history when saving is enabled. */
 export async function recordHistory(spec: RequestSpec, result: ResponseResult): Promise<void> {
-  const entry: HistoryEntry = {
-    id: uid('hist'),
-    method: spec.method,
-    url: spec.url,
-    status: result.status,
-    durationMs: result.durationMs,
-    at: Date.now(),
-    spec: structuredClone(spec),
-  };
-  await pushHistory(entry);
-  useLibrary.setState((s) => ({ history: [entry, ...s.history].slice(0, 100) }));
+  if (!usePrefs.getState().saveHistory) return;
+
+  const lib = useLibrary.getState();
+  if (lib.dbStatus !== 'ok') return;
+
+  const entry = toHistoryEntry(spec, result);
+  try {
+    await postHistory(entry);
+    useLibrary.setState((s) => ({ history: [entry, ...s.history].slice(0, 100) }));
+  } catch {
+    // History save is best-effort; do not block the send flow.
+  }
 }

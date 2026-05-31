@@ -1,0 +1,98 @@
+import type { Collection, HistoryEntry, SavedRequest } from '@core/types';
+import { getOrCreateWorkspaceId } from '../store/workspace';
+
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
+async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers = new Headers(init?.headers);
+  headers.set('X-ApiFlash-Workspace', getOrCreateWorkspaceId());
+  if (init?.body && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+
+  const res = await fetch(path, { ...init, headers });
+  if (!res.ok) {
+    let message = res.statusText;
+    try {
+      const body = (await res.json()) as { error?: string };
+      if (body.error) message = body.error;
+    } catch {
+      // ignore
+    }
+    throw new ApiError(message, res.status);
+  }
+  if (res.status === 204) return undefined as T;
+  return (await res.json()) as T;
+}
+
+export async function fetchHistory(): Promise<HistoryEntry[]> {
+  const { data } = await apiFetch<{ data: HistoryEntry[] }>('/api/history');
+  return data;
+}
+
+export async function postHistory(entry: HistoryEntry): Promise<void> {
+  await apiFetch('/api/history', { method: 'POST', body: JSON.stringify(entry) });
+}
+
+export async function clearHistoryApi(): Promise<void> {
+  await apiFetch('/api/history', { method: 'DELETE' });
+}
+
+export async function fetchCollections(): Promise<Collection[]> {
+  const { data } = await apiFetch<{ data: Collection[] }>('/api/collections');
+  return data;
+}
+
+export async function createCollectionApi(
+  id: string,
+  name: string,
+  createdAt: number,
+): Promise<Collection> {
+  const { data } = await apiFetch<{ data: Collection }>('/api/collections', {
+    method: 'POST',
+    body: JSON.stringify({ id, name, createdAt }),
+  });
+  return data;
+}
+
+export async function renameCollectionApi(id: string, name: string): Promise<void> {
+  await apiFetch(`/api/collections/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ name }),
+  });
+}
+
+export async function deleteCollectionApi(id: string): Promise<void> {
+  await apiFetch(`/api/collections/${id}`, { method: 'DELETE' });
+}
+
+export async function addSavedRequestApi(collectionId: string, saved: SavedRequest): Promise<void> {
+  await apiFetch(`/api/collections/${collectionId}/requests`, {
+    method: 'POST',
+    body: JSON.stringify(saved),
+  });
+}
+
+export async function removeSavedRequestApi(collectionId: string, requestId: string): Promise<void> {
+  await apiFetch(`/api/collections/${collectionId}/requests/${requestId}`, { method: 'DELETE' });
+}
+
+export async function checkDbHealth(): Promise<'ok' | 'down' | 'not_configured'> {
+  try {
+    const res = await fetch('/api/health');
+    const body = (await res.json()) as { db?: string };
+    if (body.db === 'ok') return 'ok';
+    if (body.db === 'not_configured') return 'not_configured';
+    return 'down';
+  } catch {
+    return 'down';
+  }
+}

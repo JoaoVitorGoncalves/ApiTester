@@ -19,6 +19,9 @@ export const en = {
   'sidebar.requests_one': '1 request',
   'sidebar.requests_many': '{count} requests',
   'sidebar.local_only': 'History and collections never leave this browser.',
+  'sidebar.server_storage':
+    'History and collections are stored in this server’s MySQL database (per workspace). Turn off “Save history” for anonymous requests.',
+  'sidebar.db_unavailable': 'Database unavailable. Check MySQL configuration and run npm run migrate.',
 
   'request.url_placeholder': 'Enter a URL or paste a cURL command',
   'request.send': 'Send',
@@ -79,6 +82,9 @@ export const en = {
   'settings.use_proxy': 'Server proxy',
   'settings.proxy_on_hint': 'Requests go through the server proxy to avoid CORS.',
   'settings.proxy_off_hint': 'Requests are sent straight from the browser.',
+  'settings.save_history': 'Save history',
+  'settings.save_history_hint': 'Successful requests are stored in the server database.',
+  'settings.anonymous_hint': 'Anonymous mode: this request will not be saved to history.',
 
   'curl.copy': 'Copy cURL',
   'curl.import': 'Import cURL',
