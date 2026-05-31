@@ -1,0 +1,10 @@
+node_modules
+dist
+dist-server
+*.local
+.env
+.env.*
+*.tsbuildinfo
+.DS_Store
+npm-debug.log*
+.cursor

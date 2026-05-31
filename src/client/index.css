@@ -1,0 +1,128 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root,
+[data-theme='dark'] {
+  --bg: #15120e;
+  --surface: #1d1813;
+  --surface-2: #261f18;
+  --border: #322a20;
+  --border-strong: #483d2f;
+  --text: #f4ede1;
+  --text-dim: #b6aa97;
+  --text-faint: #7e7363;
+
+  --accent: #f5a524;
+  --accent-soft: rgba(245, 165, 36, 0.14);
+  --accent-fg: #1a1206;
+
+  --ok: #5ec98a;
+  --warn: #f2c14e;
+  --danger: #ec6a6a;
+  --info: #5f9be6;
+
+  --m-get: #5fb98a;
+  --m-post: #e0a23a;
+  --m-put: #5b9bd5;
+  --m-patch: #b08cd9;
+  --m-delete: #e06c75;
+  --m-head: #57b6b2;
+  --m-options: #9b9081;
+
+  color-scheme: dark;
+}
+
+[data-theme='light'] {
+  --bg: #faf6f0;
+  --surface: #ffffff;
+  --surface-2: #f2ece2;
+  --border: #e7ddcd;
+  --border-strong: #d3c6b2;
+  --text: #2a2118;
+  --text-dim: #6c6051;
+  --text-faint: #98897a;
+
+  --accent: #d97706;
+  --accent-soft: rgba(217, 119, 6, 0.12);
+  --accent-fg: #fff8ee;
+
+  --ok: #1f9d57;
+  --warn: #b4791b;
+  --danger: #d24747;
+  --info: #2f73c4;
+
+  --m-get: #2f8f5f;
+  --m-post: #b9791f;
+  --m-put: #2f6fb0;
+  --m-patch: #8456ba;
+  --m-delete: #cc4b54;
+  --m-head: #2c8a86;
+  --m-options: #7c7264;
+
+  color-scheme: light;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: theme('fontFamily.sans');
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: var(--accent-soft);
+    color: var(--text);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+    border-radius: 4px;
+  }
+}
+
+@layer components {
+  .scroll-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+  .scroll-thin::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+  }
+  .scroll-thin::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 999px;
+    border: 2px solid var(--bg);
+  }
+  .scroll-thin::-webkit-scrollbar-thumb:hover {
+    background: var(--text-faint);
+  }
+
+  /* Field shared look */
+  .af-input {
+    @apply w-full rounded-lg bg-surface px-3 py-2 text-sm text-text placeholder:text-text-faint;
+    @apply border border-border transition-colors;
+  }
+  .af-input:hover {
+    border-color: var(--border-strong);
+  }
+  .af-input:focus {
+    border-color: var(--accent);
+    outline: none;
+  }
+}

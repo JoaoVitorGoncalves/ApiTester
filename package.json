@@ -1,0 +1,40 @@
+{
+  "name": "apiflash",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "apiFlash - a browser HTTP workbench for testing REST endpoints.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit -p tsconfig.json && vite build",
+    "build:server": "esbuild src/server.node.ts --bundle --platform=node --format=esm --packages=external --outfile=dist-server/server.node.js",
+    "start": "node dist-server/server.node.js",
+    "preview": "npm run build && npm run build:server && npm run start",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@fontsource-variable/geist": "^5.1.0",
+    "@fontsource-variable/geist-mono": "^5.1.0",
+    "@hono/node-server": "^1.13.7",
+    "hono": "^4.6.14",
+    "idb": "^8.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^4.5.5"
+  },
+  "devDependencies": {
+    "@hono/vite-dev-server": "^0.17.0",
+    "@types/node": "^22.19.19",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2",
+    "vite": "^5.4.11",
+    "vitest": "^2.1.8"
+  }
+}
