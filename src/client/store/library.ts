@@ -15,6 +15,7 @@ import {
   removeSavedRequestApi,
   renameCollectionApi,
 } from '../api/library';
+import { useAuth } from './auth';
 import { usePrefs } from './prefs';
 
 interface LibraryState {
@@ -24,6 +25,7 @@ interface LibraryState {
   dbStatus: 'ok' | 'down' | 'not_configured' | 'unknown';
   lastError: string | null;
 
+  reset: () => void;
   init: () => Promise<void>;
   clearAllHistory: () => Promise<void>;
   createCollection: (name: string) => Promise<Collection>;
@@ -40,7 +42,18 @@ export const useLibrary = create<LibraryState>((set, get) => ({
   dbStatus: 'unknown',
   lastError: null,
 
+  reset: () =>
+    set({
+      history: [],
+      collections: [],
+      loaded: false,
+      dbStatus: 'unknown',
+      lastError: null,
+    }),
+
   init: async () => {
+    const authMode = useAuth.getState().mode;
+    if (authMode !== 'guest' && authMode !== 'user') return;
     if (get().loaded) return;
     const dbStatus = await checkDbHealth();
     if (dbStatus !== 'ok') {

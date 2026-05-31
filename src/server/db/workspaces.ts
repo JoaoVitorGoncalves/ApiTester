@@ -19,9 +19,8 @@ export async function ensureWorkspaceExists(workspaceId: string): Promise<void> 
   );
   const cnt = Number((rows as { cnt: number }[])[0]?.cnt ?? 0);
   if (cnt > 0) return;
-  await pool.query('INSERT INTO workspaces (id, name, created_at) VALUES (?, ?, ?)', [
-    workspaceId,
-    'workspace',
-    Date.now(),
-  ]);
+  await pool.query(
+    'INSERT INTO workspaces (id, name, owner_user_id, created_at) VALUES (?, ?, NULL, ?)',
+    [workspaceId, 'guest-session', Date.now()],
+  );
 }

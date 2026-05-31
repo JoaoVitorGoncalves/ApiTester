@@ -3,6 +3,17 @@ export const en = {
   'topbar.theme': 'Toggle theme',
   'topbar.language': 'Language',
   'topbar.github': 'About',
+  'topbar.guest': 'Guest',
+
+  'signin.subtitle': 'Sign in to sync history and collections',
+  'signin.login': 'Sign in',
+  'signin.register': 'Create account',
+  'signin.name': 'Name',
+  'signin.password': 'Password',
+  'signin.guest': 'Continue as guest',
+  'signin.guest_hint': 'History and collections last for this browser tab only.',
+  'signin.logout': 'Sign out',
+  'signin.submitting': 'Please wait…',
 
   'sidebar.history': 'History',
   'sidebar.collections': 'Collections',
@@ -20,7 +31,9 @@ export const en = {
   'sidebar.requests_many': '{count} requests',
   'sidebar.local_only': 'History and collections never leave this browser.',
   'sidebar.server_storage':
-    'History and collections are stored in this server’s MySQL database (per workspace). Turn off “Save history” for anonymous requests.',
+    'History and collections are stored in your account on this server’s MySQL database. Turn off “Save history” to skip persisting a request.',
+  'sidebar.guest_session':
+    'Guest session: history and collections are stored on this server for this tab only. They are cleared when you close the tab.',
   'sidebar.db_unavailable': 'Database unavailable. Check MySQL configuration and run npm run migrate.',
 
   'request.url_placeholder': 'Enter a URL or paste a cURL command',

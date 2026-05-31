@@ -1,5 +1,6 @@
 import type { Collection, HistoryEntry, SavedRequest } from '@core/types';
-import { getOrCreateWorkspaceId } from '../store/workspace';
+import { useAuth } from '../store/auth';
+import { getOrCreateGuestWorkspaceId } from '../store/workspace';
 
 export class ApiError extends Error {
   constructor(
@@ -11,9 +12,23 @@ export class ApiError extends Error {
   }
 }
 
+function libraryHeaders(): Headers {
+  const headers = new Headers();
+  const auth = useAuth.getState();
+  if (auth.mode === 'user' && auth.token) {
+    headers.set('Authorization', `Bearer ${auth.token}`);
+  } else if (auth.mode === 'guest') {
+    headers.set('X-ApiFlash-Mode', 'guest');
+    headers.set('X-ApiFlash-Workspace', getOrCreateGuestWorkspaceId());
+  }
+  return headers;
+}
+
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const headers = new Headers(init?.headers);
-  headers.set('X-ApiFlash-Workspace', getOrCreateWorkspaceId());
+  const headers = libraryHeaders();
+  if (init?.headers) {
+    new Headers(init.headers).forEach((v, k) => headers.set(k, v));
+  }
   if (init?.body && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
   }

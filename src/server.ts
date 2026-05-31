@@ -1,8 +1,9 @@
-import 'dotenv/config';
+import './server/loadEnv';
 import { Hono } from 'hono';
 import { isDbConfigured, pingDb } from './server/db/pool';
 import collectionsRoutes from './server/routes/collections';
 import historyRoutes from './server/routes/history';
+import authRoutes from './server/routes/auth';
 import { proxyHandler } from './server/proxy';
 
 const app = new Hono();
@@ -15,6 +16,7 @@ app.get('/api/health', async (c) => {
 
 app.post('/api/proxy', proxyHandler);
 
+app.route('/api/auth', authRoutes);
 app.route('/api/history', historyRoutes);
 app.route('/api/collections', collectionsRoutes);
 

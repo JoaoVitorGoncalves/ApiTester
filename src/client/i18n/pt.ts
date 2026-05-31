@@ -5,6 +5,17 @@ export const pt: Record<TranslationKey, string> = {
   'topbar.theme': 'Alternar tema',
   'topbar.language': 'Idioma',
   'topbar.github': 'Sobre',
+  'topbar.guest': 'Convidado',
+
+  'signin.subtitle': 'Entre para sincronizar histórico e coleções',
+  'signin.login': 'Entrar',
+  'signin.register': 'Criar conta',
+  'signin.name': 'Nome',
+  'signin.password': 'Senha',
+  'signin.guest': 'Continuar como convidado',
+  'signin.guest_hint': 'Histórico e coleções valem só nesta aba do navegador.',
+  'signin.logout': 'Sair',
+  'signin.submitting': 'Aguarde…',
 
   'sidebar.history': 'Histórico',
   'sidebar.collections': 'Coleções',
@@ -22,7 +33,9 @@ export const pt: Record<TranslationKey, string> = {
   'sidebar.requests_many': '{count} requisições',
   'sidebar.local_only': 'Histórico e coleções nunca saem deste navegador.',
   'sidebar.server_storage':
-    'Histórico e coleções ficam no MySQL deste servidor (por workspace). Desative “Salvar histórico” para requisições anônimas.',
+    'Histórico e coleções ficam na sua conta no MySQL deste servidor. Desative “Salvar histórico” para não gravar uma requisição.',
+  'sidebar.guest_session':
+    'Sessão convidado: histórico e coleções ficam neste servidor só nesta aba. Somem ao fechar a aba.',
   'sidebar.db_unavailable':
     'Banco indisponível. Verifique o MySQL e execute npm run migrate.',
 

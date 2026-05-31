@@ -1,7 +1,9 @@
 import { useT } from '../i18n';
+import { useAuth } from '../store/auth';
 import { usePrefs, type Lang } from '../store/prefs';
+import { useLibrary } from '../store/library';
 import { BoltIcon, MoonIcon, SunIcon } from './icons';
-import { IconButton, cx } from './ui';
+import { Button, IconButton, cx } from './ui';
 
 export function Topbar({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   const { t } = useT();
@@ -9,6 +11,10 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   const toggleTheme = usePrefs((s) => s.toggleTheme);
   const lang = usePrefs((s) => s.lang);
   const setLang = usePrefs((s) => s.setLang);
+  const authMode = useAuth((s) => s.mode);
+  const user = useAuth((s) => s.user);
+  const logout = useAuth((s) => s.logout);
+  const resetLibrary = useLibrary((s) => s.reset);
 
   return (
     <header className="flex items-center gap-3 border-b border-border bg-surface/60 px-3 py-2.5 backdrop-blur">
@@ -34,6 +40,23 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar: () => void }) {
       </div>
 
       <div className="ml-auto flex items-center gap-2">
+        <span
+          className="hidden max-w-[10rem] truncate rounded-md border border-border bg-surface-2 px-2 py-1 text-2xs font-medium text-text-dim sm:inline"
+          title={authMode === 'user' && user ? user.name : t('topbar.guest')}
+        >
+          {authMode === 'user' && user ? user.name : t('topbar.guest')}
+        </span>
+        <Button
+          type="button"
+          variant="ghost"
+          className="hidden px-2 py-1 text-2xs sm:inline-flex"
+          onClick={() => {
+            resetLibrary();
+            logout();
+          }}
+        >
+          {t('signin.logout')}
+        </Button>
         <div className="flex items-center rounded-lg border border-border bg-surface p-0.5" role="group" aria-label={t('topbar.language')}>
           {(['pt', 'en'] as Lang[]).map((code) => (
             <button

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { RequestSpec } from '@core/types';
-import { useT } from '../i18n';
+import { useT, type TranslationKey } from '../i18n';
+import { useAuth } from '../store/auth';
 import { useLibrary } from '../store/library';
 import { useRequestStore } from '../store/requestStore';
 import { relativeTime, statusColor } from '../lib/format';
@@ -16,6 +17,14 @@ export function Sidebar() {
   const history = useLibrary((s) => s.history);
   const collections = useLibrary((s) => s.collections);
   const dbStatus = useLibrary((s) => s.dbStatus);
+  const authMode = useAuth((s) => s.mode);
+
+  const footerKey: TranslationKey =
+    dbStatus === 'ok'
+      ? authMode === 'guest'
+        ? 'sidebar.guest_session'
+        : 'sidebar.server_storage'
+      : 'sidebar.db_unavailable';
 
   return (
     <aside className="flex min-h-0 w-full flex-col bg-surface/40">
@@ -32,9 +41,7 @@ export function Sidebar() {
       <div className="scroll-thin min-h-0 flex-1 overflow-y-auto p-2">
         {tab === 'history' ? <HistoryList /> : <CollectionsList />}
       </div>
-      <p className="border-t border-border px-3 py-2 text-2xs leading-snug text-text-faint">
-        {dbStatus === 'ok' ? t('sidebar.server_storage') : t('sidebar.db_unavailable')}
-      </p>
+      <p className="border-t border-border px-3 py-2 text-2xs leading-snug text-text-faint">{t(footerKey)}</p>
     </aside>
   );
 }

@@ -25,6 +25,8 @@ apiFlash is a single TypeScript app — a React + Vite client with a small [Hono
 - Server-side history (full request + response + cURL) stored in MySQL.
 - Persistent collections of saved requests in MySQL.
 - Optional **anonymous mode**: disable “Save history” so successful requests are not written to the database.
+- **Accounts** with name + password (JWT); history and collections are tied to your workspace.
+- **Guest mode** without signup — ephemeral workspace per browser tab (`sessionStorage`).
 - Language toggle for Portuguese and English, plus a dark/light theme.
 
 ## Tech stack
@@ -34,7 +36,8 @@ apiFlash is a single TypeScript app — a React + Vite client with a small [Hono
 | Client | React 18 + Vite + TypeScript + Tailwind CSS |
 | State | Zustand |
 | Server | Hono (proxy route), mounted via `@hono/vite-dev-server` in dev and `@hono/node-server` in production |
-| Storage | MySQL for history and collections; `localStorage` for theme, language, workspace id, and save-history preference |
+| Storage | MySQL for history and collections; `localStorage` for theme, language, auth token, and save-history preference; `sessionStorage` for guest workspace id |
+| Auth | `bcryptjs` + `jose` (JWT HS256) on `/api/auth/*` |
 | Tests | Vitest |
 
 ## Getting started
@@ -101,13 +104,22 @@ To test APIs on `localhost` or your LAN, either:
 APIFLASH_ALLOW_PRIVATE=1 npm run start
 ```
 
-## Privacy and workspaces
+## Authentication and workspaces
 
-History and collections are stored in **your** MySQL instance (this server installation), scoped by a workspace id sent from the browser (`X-ApiFlash-Workspace`). There is no login yet — anyone who can reach the same server shares the default workspace unless each browser uses its own generated workspace id.
+History and collections require authentication:
 
-- Turn off **Save history** in the request settings to send requests without persisting them (anonymous mode). The response is still visible in the UI for the current session only.
-- History entries include the full request (headers, auth, body) and response (body, headers). Do not store production secrets on a shared or public deployment.
-- Collections are always saved to the database when MySQL is available.
+- **Signed-in users** send `Authorization: Bearer <JWT>`. The server resolves the workspace from the token (the `X-ApiFlash-Workspace` header is ignored for logged-in users).
+- **Guests** send `X-ApiFlash-Mode: guest` and a workspace UUID in `X-ApiFlash-Workspace` (stored in `sessionStorage`, one per tab). Data is isolated per tab and not tied to an account.
+- **`/api/proxy`** and **`/api/health`** stay public so the workbench works without an account.
+
+Set a strong `JWT_SECRET` (32+ characters) in `.env` before deploying publicly. Passwords are hashed with bcrypt; tokens expire per `JWT_EXPIRES_IN` (default `7d`).
+
+### Security notes for public deploys
+
+- Do not use the default `JWT_SECRET` from `.env.example` in production.
+- Guest workspaces are created on the server when first used; they are not password-protected — treat guest data as disposable.
+- Turn off **Save history** to skip persisting successful requests even when signed in.
+- History entries include full request and response payloads. Do not store production secrets on shared hosts.
 
 Avoid saving production credentials in a public demo unless you control the environment. Anything you type into auth, headers or a body is sent to the target you choose (directly or via the proxy).
 
@@ -121,7 +133,8 @@ src/
     request.ts     Assemble a RequestSpec into a concrete request
     json.ts        JSON validate / format / minify
     curl/          cURL parse + build
-  server.ts        Hono app (proxy + /api/history + /api/collections)
+  server.ts        Hono app (proxy + /api/auth + /api/history + /api/collections)
+  server/auth/     JWT, password hashing, user repository
   server.node.ts   Production entry: serves dist/ + the API
   server/db/       MySQL pool, repositories
   server/          Proxy handler and SSRF guard

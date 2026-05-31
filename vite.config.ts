@@ -8,6 +8,7 @@ import { fileURLToPath, URL } from 'node:url';
 // lookahead sends everything that is NOT under `/api` back to Vite so the SPA
 // and its modules keep full HMR.
 export default defineConfig({
+  envDir: fileURLToPath(new URL('.', import.meta.url)),
   plugins: [
     react(),
     devServer({

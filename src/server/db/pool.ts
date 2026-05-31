@@ -2,8 +2,22 @@ import mysql from 'mysql2/promise';
 
 let pool: mysql.Pool | null = null;
 
+/** dotenv may leave surrounding quotes when values are written as MYSQL_PASSWORD="". */
+function stripEnvQuotes(value: string): string {
+  const trimmed = value.trim();
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1);
+  }
+  return trimmed;
+}
+
 export function isDbConfigured(): boolean {
-  return Boolean(process.env.MYSQL_DATABASE || process.env.MYSQL_HOST);
+  const host = process.env.MYSQL_HOST?.trim();
+  const database = process.env.MYSQL_DATABASE?.trim();
+  return Boolean(host || database);
 }
 
 export function getPool(): mysql.Pool {
@@ -12,7 +26,7 @@ export function getPool(): mysql.Pool {
       host: process.env.MYSQL_HOST ?? '127.0.0.1',
       port: Number(process.env.MYSQL_PORT ?? 3306),
       user: process.env.MYSQL_USER ?? 'root',
-      password: process.env.MYSQL_PASSWORD ?? '',
+      password: stripEnvQuotes(process.env.MYSQL_PASSWORD ?? ''),
       database: process.env.MYSQL_DATABASE ?? 'apiflash',
       waitForConnections: true,
       connectionLimit: 10,

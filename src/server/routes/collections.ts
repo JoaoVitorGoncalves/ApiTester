@@ -1,13 +1,11 @@
 import { Hono } from 'hono';
 import type { SavedRequest } from '../../core/types';
 import * as collectionsDb from '../db/collections';
-import { requireDb, withWorkspace } from '../db/middleware';
+import { type AuthVariables, requireDb, withAuthWorkspace } from '../db/middleware';
 
-type Vars = { workspaceId: string };
+const app = new Hono<{ Variables: AuthVariables }>();
 
-const app = new Hono<{ Variables: Vars }>();
-
-app.use('*', requireDb, withWorkspace);
+app.use('*', requireDb, withAuthWorkspace);
 
 app.get('/', async (c) => {
   const collections = await collectionsDb.listCollections(c.get('workspaceId'));
