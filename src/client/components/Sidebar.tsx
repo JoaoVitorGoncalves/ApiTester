@@ -1,23 +1,31 @@
-import { useState } from 'react';
-import type { RequestSpec } from '@core/types';
+import { useEffect, useState } from 'react';
+import type { RequestSpec, WebhookEndpoint } from '@core/types';
 import { useT, type TranslationKey } from '../i18n';
 import { useAuth } from '../store/auth';
 import { useLibrary } from '../store/library';
+import { useWebhooks } from '../store/webhooks';
 import { useRequestStore } from '../store/requestStore';
 import { relativeTime, statusColor } from '../lib/format';
 import { MethodBadge } from './MethodBadge';
+import { WebhookUrlCopy } from './WebhookTutorial';
 import { ChevronDownIcon, PencilIcon, PlusIcon, TrashIcon } from './icons';
 import { CountBadge, Tabs, cx } from './ui';
 
-type TabId = 'history' | 'collections';
+type TabId = 'history' | 'collections' | 'webhooks';
 
 export function Sidebar() {
   const { t } = useT();
   const [tab, setTab] = useState<TabId>('history');
   const history = useLibrary((s) => s.history);
   const collections = useLibrary((s) => s.collections);
+  const endpoints = useWebhooks((s) => s.endpoints);
   const dbStatus = useLibrary((s) => s.dbStatus);
   const authMode = useAuth((s) => s.mode);
+  const setPanelActive = useWebhooks((s) => s.setPanelActive);
+
+  useEffect(() => {
+    setPanelActive(tab === 'webhooks');
+  }, [tab, setPanelActive]);
 
   const footerKey: TranslationKey =
     dbStatus === 'ok'
@@ -35,11 +43,23 @@ export function Sidebar() {
           tabs={[
             { id: 'history', label: <>{t('sidebar.history')}<CountBadge count={history.length} /></> },
             { id: 'collections', label: <>{t('sidebar.collections')}<CountBadge count={collections.length} /></> },
+            { id: 'webhooks', label: <>{t('sidebar.webhooks')}<CountBadge count={endpoints.length} /></> },
           ]}
         />
       </div>
-      <div className="scroll-thin min-h-0 flex-1 overflow-y-auto p-2">
-        {tab === 'history' ? <HistoryList /> : <CollectionsList />}
+      <div
+        className={cx(
+          'min-h-0 flex-1',
+          tab === 'webhooks' ? 'flex flex-col overflow-hidden' : 'scroll-thin overflow-y-auto p-2',
+        )}
+      >
+        {tab === 'history' ? (
+          <HistoryList />
+        ) : tab === 'collections' ? (
+          <CollectionsList />
+        ) : (
+          <WebhooksSidebar />
+        )}
       </div>
       <p className="border-t border-border px-3 py-2 text-2xs leading-snug text-text-faint">{t(footerKey)}</p>
     </aside>
@@ -253,4 +273,247 @@ function SavedRow({
 
 function Empty({ text }: { text: string }) {
   return <p className="px-2 py-6 text-center text-xs leading-relaxed text-text-faint">{text}</p>;
+}
+
+function WebhooksSidebar() {
+  const { t } = useT();
+  const dbStatus = useLibrary((s) => s.dbStatus);
+
+  if (dbStatus !== 'ok') {
+    return (
+      <div className="p-2">
+        <Empty text={t('sidebar.db_unavailable')} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex min-h-0 flex-1 flex-col border-b border-border">
+        <p className="shrink-0 px-3 py-1.5 text-2xs font-semibold uppercase tracking-wide text-text-faint">
+          {t('webhooks.endpoints')}
+        </p>
+        <div className="scroll-thin min-h-0 flex-1 overflow-y-auto p-2">
+          <WebhooksEndpointsList />
+        </div>
+      </div>
+      <div className="flex min-h-0 flex-1 flex-col">
+        <WebhooksReceiptsList />
+      </div>
+    </div>
+  );
+}
+
+function WebhooksEndpointsList() {
+  const { t } = useT();
+  const endpoints = useWebhooks((s) => s.endpoints);
+  const selectedWebhookId = useWebhooks((s) => s.selectedWebhookId);
+  const selectWebhook = useWebhooks((s) => s.selectWebhook);
+  const createEndpoint = useWebhooks((s) => s.createEndpoint);
+  const renameEndpoint = useWebhooks((s) => s.renameEndpoint);
+  const toggleEndpoint = useWebhooks((s) => s.toggleEndpoint);
+  const deleteEndpoint = useWebhooks((s) => s.deleteEndpoint);
+  const [creating, setCreating] = useState(false);
+  const [name, setName] = useState('');
+  const [withSecret, setWithSecret] = useState(false);
+
+  useEffect(() => {
+    if (endpoints.length === 0 || selectedWebhookId) return;
+    void selectWebhook(endpoints[0].id);
+  }, [endpoints, selectedWebhookId, selectWebhook]);
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="px-1">
+        {creating ? (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!name.trim()) return;
+              void createEndpoint(name.trim(), withSecret).then(({ secret }) => {
+                if (secret) window.alert(`${t('webhooks.secret_created')}\n\n${secret}`);
+              });
+              setName('');
+              setWithSecret(false);
+              setCreating(false);
+            }}
+            className="space-y-2 rounded-lg border border-border bg-surface/60 p-2"
+          >
+            <input
+              autoFocus
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder={t('webhooks.name')}
+              className="af-input w-full px-2 py-1 text-xs"
+            />
+            <label className="flex items-center gap-2 text-2xs text-text-dim">
+              <input
+                type="checkbox"
+                checked={withSecret}
+                onChange={(e) => setWithSecret(e.target.checked)}
+                className="rounded border-border"
+              />
+              {t('webhooks.create_with_secret')}
+            </label>
+          </form>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setCreating(true)}
+            className="flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium text-text-dim transition-colors hover:bg-surface-2 hover:text-text"
+          >
+            <PlusIcon width={14} height={14} />
+            {t('webhooks.new')}
+          </button>
+        )}
+      </div>
+
+      {endpoints.length === 0 ? (
+        <Empty text={t('webhooks.empty')} />
+      ) : (
+        endpoints.map((endpoint) => (
+          <WebhookEndpointItem
+            key={endpoint.id}
+            endpoint={endpoint}
+            selected={selectedWebhookId === endpoint.id}
+            onSelect={() => void selectWebhook(endpoint.id)}
+            onRename={() => {
+              const next = window.prompt(t('sidebar.rename'), endpoint.name);
+              if (next != null) void renameEndpoint(endpoint.id, next);
+            }}
+            onToggle={() => void toggleEndpoint(endpoint.id, !endpoint.enabled)}
+            onDelete={() => void deleteEndpoint(endpoint.id)}
+          />
+        ))
+      )}
+    </div>
+  );
+}
+
+function WebhookEndpointItem({
+  endpoint,
+  selected,
+  onSelect,
+  onRename,
+  onToggle,
+  onDelete,
+}: {
+  endpoint: WebhookEndpoint;
+  selected: boolean;
+  onSelect: () => void;
+  onRename: () => void;
+  onToggle: () => void;
+  onDelete: () => void;
+}) {
+  const { t } = useT();
+  return (
+    <div
+      className={cx(
+        'group rounded-lg px-1.5 py-1 transition-colors',
+        selected ? 'bg-accent-soft/30' : 'hover:bg-surface-2',
+      )}
+    >
+      <div className="flex items-center gap-1">
+        <button type="button" onClick={onSelect} className="min-w-0 flex-1 truncate text-left text-xs font-semibold text-text">
+          {endpoint.name}
+          {!endpoint.enabled && (
+            <span className="ml-1 text-2xs font-normal text-text-faint">{t('webhooks.disabled')}</span>
+          )}
+        </button>
+        <WebhookUrlCopy webhookId={endpoint.id} />
+        <button
+          type="button"
+          aria-label={t('sidebar.rename')}
+          onClick={onRename}
+          className="hidden h-6 w-6 items-center justify-center rounded text-text-faint hover:text-text group-hover:flex"
+        >
+          <PencilIcon width={13} height={13} />
+        </button>
+        <button
+          type="button"
+          onClick={onToggle}
+          className="hidden text-2xs text-text-faint hover:text-text group-hover:inline"
+        >
+          {endpoint.enabled ? t('webhooks.disable') : t('webhooks.enable')}
+        </button>
+        <button
+          type="button"
+          aria-label={t('sidebar.delete')}
+          onClick={onDelete}
+          className="hidden h-6 w-6 items-center justify-center rounded text-text-faint hover:text-danger group-hover:flex"
+        >
+          <TrashIcon width={13} height={13} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function WebhooksReceiptsList() {
+  const { t, lang } = useT();
+  const selectedWebhookId = useWebhooks((s) => s.selectedWebhookId);
+  const receipts = useWebhooks((s) => s.receipts);
+  const selectedReceipt = useWebhooks((s) => s.selectedReceipt);
+  const selectReceipt = useWebhooks((s) => s.selectReceipt);
+  const clearReceipts = useWebhooks((s) => s.clearReceipts);
+
+  return (
+    <>
+      <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-3 py-1.5">
+        <span className="text-2xs font-semibold uppercase tracking-wide text-text-faint">
+          {t('webhooks.receipts_title')}
+        </span>
+        {selectedWebhookId && receipts.length > 0 && (
+          <button
+            type="button"
+            onClick={() => {
+              if (window.confirm(t('webhooks.clear_receipts_confirm'))) {
+                void clearReceipts(selectedWebhookId);
+              }
+            }}
+            className="text-2xs font-medium text-text-faint transition-colors hover:text-danger"
+          >
+            {t('sidebar.clear')}
+          </button>
+        )}
+      </div>
+      <div className="scroll-thin min-h-0 flex-1 overflow-y-auto p-2">
+        {!selectedWebhookId ? (
+          <Empty text={t('webhooks.receipts_pick_webhook')} />
+        ) : receipts.length === 0 ? (
+          <Empty text={t('webhooks.receipts_empty')} />
+        ) : (
+          <div className="flex flex-col gap-0.5">
+            {receipts.map((receipt) => (
+              <button
+                key={receipt.id}
+                type="button"
+                onClick={() => void selectReceipt(receipt.id)}
+                className={cx(
+                  'group flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-surface-2',
+                  selectedReceipt?.id === receipt.id && 'bg-surface-2',
+                )}
+              >
+                <span className="w-10 shrink-0 text-right font-mono text-2xs font-bold uppercase text-accent">
+                  {receipt.method}
+                </span>
+                <span className="min-w-0 flex-1 truncate font-mono text-xs text-text-dim group-hover:text-text">
+                  {receipt.path}
+                </span>
+                <span
+                  className="shrink-0 font-mono text-2xs"
+                  style={{ color: statusColor(receipt.responseStatus) }}
+                >
+                  {receipt.responseStatus}
+                </span>
+                <span className="w-9 shrink-0 text-right text-2xs text-text-faint">
+                  {relativeTime(receipt.receivedAt, lang)}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
+  );
 }

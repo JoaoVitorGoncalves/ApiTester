@@ -130,3 +130,30 @@ export interface HistoryEntry {
   response: ResponseResult;
   curl?: string;
 }
+
+export interface WebhookEndpoint {
+  id: string;
+  name: string;
+  enabled: boolean;
+  hasSecret: boolean;
+  responseStatus: number | null;
+  responseBody: string | null;
+  createdAt: number;
+}
+
+export interface WebhookReceiptSummary {
+  id: string;
+  webhookId: string;
+  method: string;
+  path: string;
+  responseStatus: number;
+  clientIp: string | null;
+  receivedAt: number;
+  bodyTruncated: boolean;
+}
+
+export interface WebhookReceipt extends WebhookReceiptSummary {
+  query: Record<string, string>;
+  headers: Record<string, string>;
+  bodyText: string | null;
+}

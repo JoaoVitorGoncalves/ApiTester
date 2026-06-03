@@ -1,20 +1,25 @@
 import { useEffect, useState } from 'react';
 import { RequestPanel } from './components/RequestPanel';
 import { ResponsePanel } from './components/ResponsePanel';
+import { WebhookReceiptPanel } from './components/WebhookReceiptPanel';
+import { WebhooksWorkbench } from './components/WebhooksWorkbench';
 import { Sidebar } from './components/Sidebar';
 import { Topbar } from './components/Topbar';
 import { cx } from './components/ui';
 import { AuthPage } from './pages/AuthPage';
 import { useAuth } from './store/auth';
 import { useLibrary } from './store/library';
+import { useWebhooks } from './store/webhooks';
 
 function WorkbenchApp() {
   const init = useLibrary((s) => s.init);
+  const initWebhooks = useWebhooks((s) => s.init);
+  const webhooksPanelActive = useWebhooks((s) => s.panelActive);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    void init();
-  }, [init]);
+    void init().then(() => initWebhooks());
+  }, [init, initWebhooks]);
 
   return (
     <div className="grid h-screen grid-rows-[auto_minmax(0,1fr)] overflow-hidden">
@@ -41,8 +46,8 @@ function WorkbenchApp() {
             'xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:grid-rows-1',
           )}
         >
-          <RequestPanel />
-          <ResponsePanel />
+          {webhooksPanelActive ? <WebhooksWorkbench /> : <RequestPanel />}
+          {webhooksPanelActive ? <WebhookReceiptPanel /> : <ResponsePanel />}
         </main>
       </div>
     </div>
@@ -54,6 +59,7 @@ export function App() {
   const bootstrapping = useAuth((s) => s.bootstrapping);
   const mode = useAuth((s) => s.mode);
   const resetLibrary = useLibrary((s) => s.reset);
+  const resetWebhooks = useWebhooks((s) => s.reset);
 
   useEffect(() => {
     void bootstrap();
@@ -62,8 +68,9 @@ export function App() {
   useEffect(() => {
     if (mode === 'unknown') {
       resetLibrary();
+      resetWebhooks();
     }
-  }, [mode, resetLibrary]);
+  }, [mode, resetLibrary, resetWebhooks]);
 
   if (bootstrapping) {
     return (

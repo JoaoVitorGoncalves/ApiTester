@@ -27,6 +27,7 @@ apiFlash is a single TypeScript app — a React + Vite client with a small [Hono
 - Optional **anonymous mode**: disable “Save history” so successful requests are not written to the database.
 - **Accounts** with name + password (JWT); history and collections are tied to your workspace.
 - **Guest mode** without signup — ephemeral workspace per browser tab (`sessionStorage`).
+- **Webhooks** — per-workspace inbox URLs (`/api/webhooks/inbox/:id`) that record incoming HTTP requests with headers, body, and client IP.
 - Language toggle for Portuguese and English, plus a dark/light theme.
 
 ## Tech stack
@@ -110,7 +111,7 @@ History and collections require authentication:
 
 - **Signed-in users** send `Authorization: Bearer <JWT>`. The server resolves the workspace from the token (the `X-ApiFlash-Workspace` header is ignored for logged-in users).
 - **Guests** send `X-ApiFlash-Mode: guest` and a workspace UUID in `X-ApiFlash-Workspace` (stored in `sessionStorage`, one per tab). Data is isolated per tab and not tied to an account.
-- **`/api/proxy`** and **`/api/health`** stay public so the workbench works without an account.
+- **`/api/proxy`**, **`/api/health`**, and **`/api/webhooks/inbox/:id`** stay public so the workbench and webhook receivers work without an account.
 
 Set a strong `JWT_SECRET` (32+ characters) in `.env` before deploying publicly. Passwords are hashed with bcrypt; tokens expire per `JWT_EXPIRES_IN` (default `7d`).
 
@@ -123,6 +124,20 @@ Set a strong `JWT_SECRET` (32+ characters) in `.env` before deploying publicly. 
 
 Avoid saving production credentials in a public demo unless you control the environment. Anything you type into auth, headers or a body is sent to the target you choose (directly or via the proxy).
 
+## Webhooks
+
+Each workspace can create webhook inbox endpoints. External services POST (or use any HTTP method) to:
+
+```
+https://your-host/api/webhooks/inbox/{webhookId}
+```
+
+Receipts appear in the **Webhooks** sidebar tab (polled every few seconds while the tab is open). Optional validation: `X-Webhook-Secret` header or `?secret=` query param when a secret is configured on create/update.
+
+For local testing with external providers, expose the dev server via your LAN IP or a tunnel (ngrok, Cloudflare Tunnel, localtunnel). The in-app network guide summarizes common setups.
+
+Optional env vars: `APIFLASH_WEBHOOK_BODY_LIMIT` (bytes, default 2MB), `APIFLASH_WEBHOOK_RATE_LIMIT` (requests per minute per inbox, default 120).
+
 ## Project layout
 
 ```
@@ -133,7 +148,7 @@ src/
     request.ts     Assemble a RequestSpec into a concrete request
     json.ts        JSON validate / format / minify
     curl/          cURL parse + build
-  server.ts        Hono app (proxy + /api/auth + /api/history + /api/collections)
+  server.ts        Hono app (proxy + /api/auth + /api/history + /api/collections + /api/webhooks)
   server/auth/     JWT, password hashing, user repository
   server.node.ts   Production entry: serves dist/ + the API
   server/db/       MySQL pool, repositories

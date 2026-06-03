@@ -12,7 +12,7 @@ export class ApiError extends Error {
   }
 }
 
-function libraryHeaders(): Headers {
+export function libraryHeaders(): Headers {
   const headers = new Headers();
   const auth = useAuth.getState();
   if (auth.mode === 'user' && auth.token) {
