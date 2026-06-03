@@ -33,7 +33,7 @@ export function ResponsePanel() {
 
   if (!response && !sending) {
     return (
-      <section className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
+      <section className="flex h-full min-h-0 flex-col items-center justify-center gap-3 p-8 text-center">
         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-surface-2 text-accent">
           <BoltIcon width={22} height={22} />
         </div>
@@ -45,7 +45,7 @@ export function ResponsePanel() {
 
   if (sending) {
     return (
-      <section className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 p-8">
+      <section className="flex h-full min-h-0 flex-col items-center justify-center gap-3 p-8">
         <div className="flex items-center gap-1.5">
           {[0, 1, 2].map((i) => (
             <span
@@ -64,7 +64,7 @@ export function ResponsePanel() {
   const isError = res.status === 0;
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col">
+    <section className="flex h-full min-h-0 flex-col">
       <header className="flex flex-wrap items-center gap-x-5 gap-y-1.5 px-4 py-3">
         <div className="flex items-baseline gap-2">
           <span className="font-mono text-lg font-bold" style={{ color: statusColor(res.status) }}>
@@ -122,7 +122,7 @@ export function ResponsePanel() {
               <button
                 type="button"
                 onClick={onCopy}
-                className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-text-dim transition-colors hover:bg-surface-2 hover:text-text"
+                className="af-interactive inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-text-dim hover:bg-surface-2 hover:text-text"
               >
                 {copied ? <CheckIcon width={14} height={14} /> : <CopyIcon width={14} height={14} />}
                 {copied ? t('response.copied') : t('response.copy')}
@@ -176,7 +176,7 @@ function MiniToggle({ active, onClick, children }: { active: boolean; onClick: (
       type="button"
       onClick={onClick}
       className={cx(
-        'rounded px-2 py-0.5 text-2xs font-medium transition-colors',
+        'af-interactive rounded px-2 py-0.5 text-2xs font-medium',
         active ? 'bg-accent-soft text-accent' : 'text-text-faint hover:text-text-dim',
       )}
     >

@@ -32,7 +32,7 @@ export function BodyEditor() {
               key={mode}
               onClick={() => setBodyMode(mode)}
               className={cx(
-                'rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
+                'af-interactive rounded-md px-3 py-1.5 text-xs font-medium',
                 body.mode === mode ? 'bg-accent-soft text-accent' : 'text-text-dim hover:text-text',
               )}
             >

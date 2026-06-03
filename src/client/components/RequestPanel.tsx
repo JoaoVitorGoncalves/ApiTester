@@ -36,7 +36,7 @@ export function RequestPanel() {
   const bodyActive = body.mode !== 'none';
 
   return (
-    <section className="flex min-h-0 flex-col border-b border-border lg:border-b-0 lg:border-r">
+    <section className="flex h-full min-h-0 flex-col border-b border-border lg:border-b-0 lg:border-r">
       <RequestBar onOpenImport={() => setImportOpen(true)} onOpenSave={() => setSaveOpen(true)} />
 
       <div className="px-3">
@@ -53,7 +53,7 @@ export function RequestPanel() {
         />
       </div>
 
-      <div className="scroll-thin min-h-0 flex-1 overflow-y-auto p-4">
+      <div key={tab} className="scroll-thin min-h-0 flex-1 overflow-y-auto p-4 animate-fade-in">
         {tab === 'params' && (
           <KeyValueEditor rows={params} onChange={setParams} emptyHint={t('kv.empty_params')} />
         )}

@@ -25,7 +25,7 @@ export function WebhooksWorkbench() {
 
   if (dbStatus !== 'ok') {
     return (
-      <section className="flex min-h-0 flex-col border-b border-border lg:border-b-0 lg:border-r">
+      <section className="flex h-full min-h-0 flex-col border-b border-border lg:border-b-0 lg:border-r">
         <WorkbenchHeader />
         <p className="px-4 py-8 text-center text-xs text-text-faint">{t('sidebar.db_unavailable')}</p>
       </section>
@@ -33,7 +33,7 @@ export function WebhooksWorkbench() {
   }
 
   return (
-    <section className="flex min-h-0 flex-col border-b border-border lg:border-b-0 lg:border-r">
+    <section className="flex h-full min-h-0 flex-col border-b border-border lg:border-b-0 lg:border-r">
       <WorkbenchHeader />
       <div className="scroll-thin min-h-0 flex-1 overflow-y-auto p-4">
         <WebhookNetworkTutorial />

@@ -22,7 +22,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar: () => void }) {
         type="button"
         onClick={onToggleSidebar}
         aria-label="Toggle sidebar"
-        className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-text-dim hover:bg-surface-2 hover:text-text lg:hidden"
+        className="af-interactive inline-flex h-8 w-8 items-center justify-center rounded-lg text-text-dim hover:bg-surface-2 hover:text-text lg:hidden"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round">
           <path d="M3 6h18M3 12h18M3 18h18" />
@@ -65,7 +65,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar: () => void }) {
               onClick={() => setLang(code)}
               aria-pressed={lang === code}
               className={cx(
-                'rounded-md px-2 py-1 text-2xs font-semibold uppercase transition-colors',
+                'af-interactive rounded-md px-2 py-1 text-2xs font-semibold uppercase',
                 lang === code ? 'bg-accent-soft text-accent' : 'text-text-faint hover:text-text-dim',
               )}
             >

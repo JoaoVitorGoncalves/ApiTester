@@ -20,7 +20,7 @@ export function Button({
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant }) {
   const base =
-    "inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50";
+    "af-interactive inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50";
   const variants: Record<ButtonVariant, string> = {
     primary:
       "bg-accent text-accent-fg hover:brightness-105 active:brightness-95",
@@ -49,7 +49,7 @@ export function IconButton({
       aria-label={label}
       aria-pressed={active}
       className={cx(
-        "inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
+        "af-interactive inline-flex h-8 w-8 items-center justify-center rounded-lg",
         active
           ? "bg-accent-soft text-accent"
           : "text-text-dim hover:bg-surface-2 hover:text-text",
@@ -105,13 +105,13 @@ export function Toggle({
       aria-label={label}
       onClick={() => onChange(!checked)}
       className={cx(
-        "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors",
+        "af-interactive relative inline-flex h-5 w-9 shrink-0 items-center rounded-full",
         checked ? "bg-accent" : "bg-border-strong",
       )}
     >
       <span
         className={cx(
-          "inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform",
+          "inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform duration-normal ease-out",
           checked ? "translate-x-[18px]" : "translate-x-[3px]",
         )}
       />
@@ -147,13 +147,13 @@ export function Tabs({
             aria-selected={selected}
             onClick={() => onSelect(tab.id)}
             className={cx(
-              "relative shrink-0 px-2.5 py-2 text-xs font-medium transition-colors sm:px-3 sm:py-2.5 sm:text-sm",
+              "af-interactive relative shrink-0 px-2.5 py-2 text-xs font-medium sm:px-3 sm:py-2.5 sm:text-sm",
               selected ? "text-text" : "text-text-faint hover:text-text-dim",
             )}
           >
             {tab.label}
             {selected && (
-              <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-accent" />
+              <span className="af-tab-indicator absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-accent" />
             )}
           </button>
         );
@@ -196,14 +196,14 @@ export function Modal({
   if (!open) return null;
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-sm sm:items-start sm:p-4 sm:pt-[10vh]"
+      className="fixed inset-0 z-50 flex animate-backdrop-in items-end justify-center bg-black/50 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-sm sm:items-start sm:p-4 sm:pt-[10vh]"
       onMouseDown={onClose}
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="flex max-h-[min(90dvh,100%)] w-full max-w-xl animate-fade-in flex-col rounded-xl border border-border-strong bg-surface shadow-2xl sm:max-h-[85dvh]"
+        className="flex max-h-[min(90dvh,100%)] w-full max-w-xl animate-slide-up flex-col rounded-xl border border-border-strong bg-surface shadow-2xl sm:max-h-[85dvh] sm:animate-fade-in"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <header className="flex items-center justify-between border-b border-border px-5 py-3.5">

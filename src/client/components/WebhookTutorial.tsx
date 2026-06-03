@@ -42,12 +42,12 @@ export function WebhookNetworkTutorial() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-2 px-2.5 py-2 text-left text-xs font-medium text-text-dim hover:text-text"
+        className="af-interactive flex w-full items-center gap-2 px-2.5 py-2 text-left text-xs font-medium text-text-dim hover:text-text"
       >
         <ChevronDownIcon
           width={14}
           height={14}
-          className={cx('shrink-0 text-text-faint transition-transform', !open && '-rotate-90')}
+          className={cx('af-expand-icon shrink-0 text-text-faint', !open && '-rotate-90')}
         />
         {t('webhooks.tutorial.title')}
       </button>
@@ -68,7 +68,7 @@ export function WebhookNetworkTutorial() {
                 <button
                   type="button"
                   onClick={() => void copyExample(ex.code, idx)}
-                  className="inline-flex items-center gap-1 text-2xs text-text-faint hover:text-text"
+                  className="af-interactive inline-flex items-center gap-1 text-2xs text-text-faint hover:text-text"
                 >
                   {copiedIdx === idx ? <CheckIcon width={12} height={12} /> : <CopyIcon width={12} height={12} />}
                   {copiedIdx === idx ? t('common.copied') : t('common.copy')}
@@ -103,7 +103,7 @@ export function WebhookUrlCopy({ webhookId }: { webhookId: string }) {
       type="button"
       onClick={() => void onCopy()}
       title={url}
-      className="inline-flex max-w-full items-center gap-1 truncate rounded px-1.5 py-0.5 text-2xs text-text-faint hover:bg-surface-2 hover:text-text"
+      className="af-interactive inline-flex max-w-full items-center gap-1 truncate rounded px-1.5 py-0.5 text-2xs text-text-faint hover:bg-surface-2 hover:text-text"
     >
       {copied ? <CheckIcon width={12} height={12} /> : <CopyIcon width={12} height={12} />}
       {copied ? t('common.copied') : t('webhooks.copy_url')}

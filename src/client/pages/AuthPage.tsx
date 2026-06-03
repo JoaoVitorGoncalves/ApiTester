@@ -50,7 +50,7 @@ export function AuthPage() {
   const displayError = localError ?? serverError;
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-12">
+    <div className="relative flex min-h-[100dvh] animate-fade-in-soft flex-col items-center justify-center overflow-hidden px-4 py-12">
       <div
         className="pointer-events-none absolute -left-24 top-1/4 h-72 w-72 rounded-full bg-accent/10 blur-3xl"
         aria-hidden
@@ -69,7 +69,7 @@ export function AuthPage() {
               onClick={() => setLang(code)}
               aria-pressed={lang === code}
               className={cx(
-                'rounded-md px-2 py-1 text-2xs font-semibold uppercase transition-colors',
+                'af-interactive rounded-md px-2 py-1 text-2xs font-semibold uppercase',
                 lang === code ? 'bg-accent-soft text-accent' : 'text-text-faint hover:text-text-dim',
               )}
             >
@@ -81,7 +81,7 @@ export function AuthPage() {
           type="button"
           onClick={toggleTheme}
           aria-label={t('topbar.theme')}
-          className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-text-dim hover:bg-surface-2 hover:text-text"
+          className="af-interactive inline-flex h-8 w-8 items-center justify-center rounded-lg text-text-dim hover:bg-surface-2 hover:text-text"
         >
           {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
         </button>
@@ -99,6 +99,7 @@ export function AuthPage() {
         </div>
 
         <div className="rounded-2xl border border-border-strong bg-surface/80 p-6 shadow-2xl backdrop-blur sm:p-8">
+          <div className="af-stagger">
           <div className="mb-6 flex rounded-lg border border-border bg-surface-2 p-0.5">
             {(['login', 'register'] as Tab[]).map((id) => (
               <button
@@ -110,7 +111,7 @@ export function AuthPage() {
                   clearError();
                 }}
                 className={cx(
-                  'flex-1 rounded-md py-2 text-sm font-semibold transition-colors',
+                  'af-interactive flex-1 rounded-md py-2 text-sm font-semibold',
                   tab === id ? 'bg-accent text-accent-fg' : 'text-text-dim hover:text-text',
                 )}
               >
@@ -144,7 +145,7 @@ export function AuthPage() {
             </label>
 
             {displayError && (
-              <p className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger" role="alert">
+              <p className="animate-fade-in rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger" role="alert">
                 {displayError}
               </p>
             )}
@@ -161,6 +162,7 @@ export function AuthPage() {
               {t('signin.guest')}
             </Button>
             <p className="mt-2 text-center text-2xs leading-relaxed text-text-faint">{t('signin.guest_hint')}</p>
+          </div>
           </div>
         </div>
       </div>

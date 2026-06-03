@@ -41,7 +41,7 @@ export function WebhookReceiptPanel() {
 
   if (!receipt) {
     return (
-      <section className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
+      <section className="flex h-full min-h-0 flex-col items-center justify-center gap-3 p-8 text-center">
         <h2 className="text-sm font-semibold text-text">{t('webhooks.receipt_empty_title')}</h2>
         <p className="max-w-xs text-xs text-text-faint">{t('webhooks.receipt_empty_hint')}</p>
       </section>
@@ -49,7 +49,7 @@ export function WebhookReceiptPanel() {
   }
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col">
+    <section className="flex h-full min-h-0 flex-col">
       <header className="flex flex-wrap items-center gap-x-5 gap-y-1.5 px-4 py-3">
         <MethodLine method={receipt.method} />
         <span className="font-mono text-lg font-bold" style={{ color: statusColor(receipt.responseStatus) }}>
@@ -106,7 +106,7 @@ export function WebhookReceiptPanel() {
           <button
             type="button"
             onClick={onCopy}
-            className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-text-dim transition-colors hover:bg-surface-2 hover:text-text"
+            className="af-interactive inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-text-dim hover:bg-surface-2 hover:text-text"
           >
             {copied ? <CheckIcon width={14} height={14} /> : <CopyIcon width={14} height={14} />}
             {copied ? t('response.copied') : t('response.copy')}
@@ -186,7 +186,7 @@ function MiniToggle({
       type="button"
       onClick={onClick}
       className={cx(
-        'rounded px-2 py-0.5 text-2xs font-medium transition-colors',
+        'af-interactive rounded px-2 py-0.5 text-2xs font-medium',
         active ? 'bg-accent-soft text-accent' : 'text-text-faint hover:text-text-dim',
       )}
     >

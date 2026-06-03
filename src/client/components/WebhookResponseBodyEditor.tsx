@@ -85,7 +85,7 @@ export function WebhookResponseBodyEditor({
               disabled={disabled}
               onClick={() => setModeAndPersist(m)}
               className={cx(
-                'rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
+                'af-interactive rounded-md px-3 py-1.5 text-xs font-medium',
                 mode === m ? 'bg-accent-soft text-accent' : 'text-text-dim hover:text-text',
               )}
             >

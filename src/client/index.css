@@ -30,6 +30,11 @@
   --m-head: #57b6b2;
   --m-options: #9b9081;
 
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 150ms;
+  --dur-normal: 220ms;
+  --dur-slow: 320ms;
+
   color-scheme: dark;
 }
 
@@ -93,6 +98,17 @@
     outline-offset: 1px;
     border-radius: 4px;
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
 
 @layer components {
@@ -116,7 +132,8 @@
   /* Field shared look */
   .af-input {
     @apply w-full rounded-lg bg-surface px-3 py-2 text-sm text-text placeholder:text-text-faint;
-    @apply border border-border transition-colors;
+    @apply border border-border;
+    transition: border-color var(--dur-normal) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
   }
   .af-input:hover {
     border-color: var(--border-strong);
@@ -124,5 +141,66 @@
   .af-input:focus {
     border-color: var(--accent);
     outline: none;
+  }
+
+  /* Shared motion utilities */
+  .af-motion {
+    transition-property: color, background-color, border-color, opacity, transform, box-shadow,
+      filter;
+    transition-duration: var(--dur-normal);
+    transition-timing-function: var(--ease-out);
+  }
+
+  .af-press:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  .af-interactive {
+    @apply af-motion af-press;
+  }
+
+  .af-panel-enter {
+    animation: fade-in 220ms var(--ease-out) both;
+  }
+
+  .af-stagger > * {
+    animation: fade-in 220ms var(--ease-out) both;
+  }
+  .af-stagger > *:nth-child(1) {
+    animation-delay: 0ms;
+  }
+  .af-stagger > *:nth-child(2) {
+    animation-delay: 40ms;
+  }
+  .af-stagger > *:nth-child(3) {
+    animation-delay: 80ms;
+  }
+  .af-stagger > *:nth-child(4) {
+    animation-delay: 120ms;
+  }
+  .af-stagger > *:nth-child(5) {
+    animation-delay: 160ms;
+  }
+  .af-stagger > *:nth-child(6) {
+    animation-delay: 200ms;
+  }
+
+  .af-tab-indicator {
+    transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-normal) var(--ease-out);
+  }
+
+  .af-expand-icon {
+    transition: transform var(--dur-normal) var(--ease-out);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

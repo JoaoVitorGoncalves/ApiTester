@@ -15,7 +15,7 @@ import { CountBadge, Tabs, cx } from './ui';
 type TabId = 'history' | 'collections' | 'webhooks';
 
 const rowActionBtn =
-  'inline-flex h-7 w-7 shrink-0 items-center justify-center rounded text-text-faint hover:text-text max-lg:flex lg:hidden lg:group-hover:inline-flex';
+  'af-interactive inline-flex h-7 w-7 shrink-0 items-center justify-center rounded text-text-faint hover:text-text max-lg:flex lg:hidden lg:group-hover:inline-flex';
 
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useT();
@@ -98,7 +98,7 @@ function HistoryList({ onNavigate }: { onNavigate?: () => void }) {
             });
             if (ok) void clearAll();
           }}
-          className="text-2xs font-medium text-text-faint transition-colors hover:text-danger"
+          className="af-interactive text-2xs font-medium text-text-faint hover:text-danger"
         >
           {t('sidebar.clear')}
         </button>
@@ -111,7 +111,7 @@ function HistoryList({ onNavigate }: { onNavigate?: () => void }) {
             onNavigate?.();
           }}
           title={entry.url}
-          className="group flex items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-surface-2"
+          className="af-interactive group flex items-center gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-surface-2"
         >
           <MethodBadge method={entry.method} className="w-12 shrink-0 text-right" />
           <span className="min-w-0 flex-1 truncate font-mono text-xs text-text-dim group-hover:text-text">
@@ -167,7 +167,7 @@ function CollectionsList({ onNavigate }: { onNavigate?: () => void }) {
           <button
             type="button"
             onClick={() => setCreating(true)}
-            className="flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium text-text-dim transition-colors hover:bg-surface-2 hover:text-text"
+            className="af-interactive flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium text-text-dim hover:bg-surface-2 hover:text-text"
           >
             <PlusIcon width={14} height={14} />
             {t('sidebar.new_collection')}
@@ -198,7 +198,7 @@ function CollectionItem({ id, onNavigate }: { id: string; onNavigate?: () => voi
 
   return (
     <div className="rounded-lg">
-      <div className="group flex items-center gap-1 rounded-lg px-1.5 py-1 hover:bg-surface-2">
+      <div className="af-interactive group flex items-center gap-1 rounded-lg px-1.5 py-1 hover:bg-surface-2">
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
@@ -207,7 +207,7 @@ function CollectionItem({ id, onNavigate }: { id: string; onNavigate?: () => voi
           <ChevronDownIcon
             width={14}
             height={14}
-            className={cx('shrink-0 text-text-faint transition-transform', !open && '-rotate-90')}
+            className={cx('af-expand-icon shrink-0 text-text-faint', !open && '-rotate-90')}
           />
           <span className="min-w-0 flex-1 truncate text-xs font-semibold text-text">{collection.name}</span>
           <span className="shrink-0 text-2xs text-text-faint">{count}</span>
@@ -277,7 +277,7 @@ function SavedRow({
 }) {
   const { t } = useT();
   return (
-    <div className="group flex items-center gap-2 rounded-md px-1.5 py-1 hover:bg-surface-2">
+    <div className="af-interactive group flex items-center gap-2 rounded-md px-1.5 py-1 hover:bg-surface-2">
       <button onClick={onLoad} className="flex min-w-0 flex-1 items-center gap-2 text-left" title={spec.url}>
         <MethodBadge method={spec.method} className="w-10 shrink-0 text-right" />
         <span className="min-w-0 flex-1 truncate text-xs text-text-dim group-hover:text-text">{name}</span>
@@ -384,7 +384,7 @@ function WebhooksEndpointsList({ onNavigate }: { onNavigate?: () => void }) {
           <button
             type="button"
             onClick={() => setCreating(true)}
-            className="flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium text-text-dim transition-colors hover:bg-surface-2 hover:text-text"
+            className="af-interactive flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium text-text-dim hover:bg-surface-2 hover:text-text"
           >
             <PlusIcon width={14} height={14} />
             {t('webhooks.new')}
@@ -445,7 +445,7 @@ function WebhookEndpointItem({
   return (
     <div
       className={cx(
-        'group rounded-lg px-1.5 py-1 transition-colors',
+        'af-interactive group rounded-lg px-1.5 py-1',
         selected ? 'bg-accent-soft/30' : 'hover:bg-surface-2',
       )}
     >
@@ -510,7 +510,7 @@ function WebhooksReceiptsList({ onNavigate }: { onNavigate?: () => void }) {
               });
               if (ok) void clearReceipts(selectedWebhookId);
             }}
-            className="text-2xs font-medium text-text-faint transition-colors hover:text-danger"
+            className="af-interactive text-2xs font-medium text-text-faint hover:text-danger"
           >
             {t('sidebar.clear')}
           </button>
@@ -532,7 +532,7 @@ function WebhooksReceiptsList({ onNavigate }: { onNavigate?: () => void }) {
                   onNavigate?.();
                 }}
                 className={cx(
-                  'group flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-surface-2',
+                  'af-interactive group flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-surface-2',
                   selectedReceipt?.id === receipt.id && 'bg-surface-2',
                 )}
               >

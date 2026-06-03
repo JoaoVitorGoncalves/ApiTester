@@ -90,7 +90,7 @@ export function KeyValueEditor({
                     onClick={() => remove(row.id)}
                     aria-label={t('kv.remove')}
                     title={t('kv.remove')}
-                    className="inline-flex h-7 w-7 items-center justify-center rounded-md text-text-faint transition-colors hover:bg-danger/10 hover:text-danger"
+                    className="af-interactive inline-flex h-7 w-7 items-center justify-center rounded-md text-text-faint hover:bg-danger/10 hover:text-danger"
                   >
                     <TrashIcon width={14} height={14} />
                   </button>

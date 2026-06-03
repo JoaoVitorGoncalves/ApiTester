@@ -25,19 +25,23 @@ function WorkbenchApp() {
   const closeSidebar = () => setSidebarOpen(false);
 
   return (
-    <div className="grid min-h-[100dvh] grid-rows-[auto_minmax(0,1fr)] overflow-hidden">
+    <div className="grid h-[100dvh] min-h-0 animate-fade-in-soft grid-rows-[auto_minmax(0,1fr)] overflow-hidden">
       <DialogHost />
       <Topbar onToggleSidebar={() => setSidebarOpen((v) => !v)} />
 
-      <div className="grid min-h-0 grid-cols-1 lg:grid-cols-[minmax(0,264px)_minmax(0,1fr)]">
-        <div className="hidden min-h-0 flex-col border-r border-border lg:flex">
+      <div className="grid h-full min-h-0 grid-cols-1 lg:grid-cols-[minmax(0,264px)_minmax(0,1fr)]">
+        <div className="hidden h-full min-h-0 flex-col border-r border-border lg:flex">
           <Sidebar />
         </div>
 
         {sidebarOpen && (
           <div className="fixed inset-0 z-40 flex lg:hidden">
-            <div className="absolute inset-0 bg-black/50" onClick={closeSidebar} aria-hidden />
-            <div className="relative flex h-full min-h-0 w-[min(100%,20rem)] max-w-[85vw] animate-fade-in flex-col border-r border-border-strong bg-surface shadow-2xl">
+            <div
+              className="absolute inset-0 animate-backdrop-in bg-black/50"
+              onClick={closeSidebar}
+              aria-hidden
+            />
+            <div className="relative flex h-full min-h-0 w-[min(100%,20rem)] max-w-[85vw] animate-slide-in-left flex-col border-r border-border-strong bg-surface shadow-2xl">
               <Sidebar onNavigate={closeSidebar} />
             </div>
           </div>
@@ -45,13 +49,36 @@ function WorkbenchApp() {
 
         <main
           className={cx(
-            'grid min-h-0 min-w-0',
+            'grid h-full min-h-0 min-w-0',
             'grid-rows-[minmax(0,1fr)_minmax(0,1fr)]',
             'lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:grid-rows-1',
           )}
         >
-          {webhooksPanelActive ? <WebhooksWorkbench /> : <RequestPanel />}
-          {webhooksPanelActive ? <WebhookReceiptPanel /> : <ResponsePanel />}
+          {webhooksPanelActive ? (
+            <>
+              <div key="webhooks-main" className="flex h-full min-h-0 flex-col animate-fade-in">
+                <WebhooksWorkbench />
+              </div>
+              <div
+                key="webhooks-detail"
+                className="flex h-full min-h-0 flex-col animate-fade-in [animation-delay:40ms]"
+              >
+                <WebhookReceiptPanel />
+              </div>
+            </>
+          ) : (
+            <>
+              <div key="request-main" className="flex h-full min-h-0 flex-col animate-fade-in">
+                <RequestPanel />
+              </div>
+              <div
+                key="request-detail"
+                className="flex h-full min-h-0 flex-col animate-fade-in [animation-delay:40ms]"
+              >
+                <ResponsePanel />
+              </div>
+            </>
+          )}
         </main>
       </div>
     </div>
@@ -78,7 +105,12 @@ export function App() {
 
   if (bootstrapping) {
     return (
-      <div className="flex min-h-[100dvh] items-center justify-center bg-bg text-text-faint">
+      <div className="flex min-h-[100dvh] flex-col items-center justify-center gap-3 bg-bg text-text-faint">
+        <span className="inline-flex items-center gap-1.5" aria-hidden>
+          <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse-soft" />
+          <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse-soft [animation-delay:120ms]" />
+          <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse-soft [animation-delay:240ms]" />
+        </span>
         <span className="text-sm">…</span>
       </div>
     );
