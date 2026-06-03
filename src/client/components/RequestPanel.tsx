@@ -36,7 +36,7 @@ export function RequestPanel() {
   const bodyActive = body.mode !== 'none';
 
   return (
-    <section className="flex min-h-0 flex-col border-b border-border xl:border-b-0 xl:border-r">
+    <section className="flex min-h-0 flex-col border-b border-border lg:border-b-0 lg:border-r">
       <RequestBar onOpenImport={() => setImportOpen(true)} onOpenSave={() => setSaveOpen(true)} />
 
       <div className="px-3">

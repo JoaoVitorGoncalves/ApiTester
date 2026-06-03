@@ -49,7 +49,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar: () => void }) {
         <Button
           type="button"
           variant="ghost"
-          className="hidden px-2 py-1 text-2xs sm:inline-flex"
+          className="px-2 py-1 text-2xs max-sm:min-w-0"
           onClick={() => {
             resetLibrary();
             logout();

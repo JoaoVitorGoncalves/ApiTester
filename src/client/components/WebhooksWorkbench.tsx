@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import type { WebhookEndpoint } from '@core/types';
+import { confirmDialog, secretDialog } from '../lib/dialog';
 import { webhookInboxUrl } from '../api/webhooks';
 import { useT } from '../i18n';
 import { useLibrary } from '../store/library';
@@ -24,7 +25,7 @@ export function WebhooksWorkbench() {
 
   if (dbStatus !== 'ok') {
     return (
-      <section className="flex min-h-0 flex-col border-b border-border xl:border-b-0 xl:border-r">
+      <section className="flex min-h-0 flex-col border-b border-border lg:border-b-0 lg:border-r">
         <WorkbenchHeader />
         <p className="px-4 py-8 text-center text-xs text-text-faint">{t('sidebar.db_unavailable')}</p>
       </section>
@@ -32,7 +33,7 @@ export function WebhooksWorkbench() {
   }
 
   return (
-    <section className="flex min-h-0 flex-col border-b border-border xl:border-b-0 xl:border-r">
+    <section className="flex min-h-0 flex-col border-b border-border lg:border-b-0 lg:border-r">
       <WorkbenchHeader />
       <div className="scroll-thin min-h-0 flex-1 overflow-y-auto p-4">
         <WebhookNetworkTutorial />
@@ -91,13 +92,17 @@ function EndpointSettings({ endpoint }: { endpoint: WebhookEndpoint }) {
 
   const onRegenerateSecret = useCallback(() => {
     void regenerateSecret(endpoint.id).then(({ secret }) => {
-      if (secret) window.alert(`${t('webhooks.secret_created')}\n\n${secret}`);
+      if (secret) void secretDialog(t('webhooks.secret_created'), t('webhooks.secret_save_hint'), secret);
     });
   }, [endpoint.id, regenerateSecret, t]);
 
-  const onClearSecret = useCallback(() => {
-    if (!window.confirm(t('webhooks.clear_secret_confirm'))) return;
-    void clearSecret(endpoint.id);
+  const onClearSecret = useCallback(async () => {
+    const ok = await confirmDialog(t('webhooks.clear_secret_confirm'), {
+      title: t('webhooks.clear_secret'),
+      danger: true,
+      confirmLabel: t('common.confirm'),
+    });
+    if (ok) void clearSecret(endpoint.id);
   }, [clearSecret, endpoint.id, t]);
 
   return (

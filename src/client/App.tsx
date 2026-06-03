@@ -4,6 +4,7 @@ import { ResponsePanel } from './components/ResponsePanel';
 import { WebhookReceiptPanel } from './components/WebhookReceiptPanel';
 import { WebhooksWorkbench } from './components/WebhooksWorkbench';
 import { Sidebar } from './components/Sidebar';
+import { DialogHost } from './components/DialogHost';
 import { Topbar } from './components/Topbar';
 import { cx } from './components/ui';
 import { AuthPage } from './pages/AuthPage';
@@ -21,29 +22,32 @@ function WorkbenchApp() {
     void init().then(() => initWebhooks());
   }, [init, initWebhooks]);
 
+  const closeSidebar = () => setSidebarOpen(false);
+
   return (
-    <div className="grid h-screen grid-rows-[auto_minmax(0,1fr)] overflow-hidden">
+    <div className="grid min-h-[100dvh] grid-rows-[auto_minmax(0,1fr)] overflow-hidden">
+      <DialogHost />
       <Topbar onToggleSidebar={() => setSidebarOpen((v) => !v)} />
 
-      <div className="grid min-h-0 lg:grid-cols-[264px_minmax(0,1fr)]">
-        <div className="hidden min-h-0 border-r border-border lg:flex">
+      <div className="grid min-h-0 grid-cols-1 lg:grid-cols-[minmax(0,264px)_minmax(0,1fr)]">
+        <div className="hidden min-h-0 flex-col border-r border-border lg:flex">
           <Sidebar />
         </div>
 
         {sidebarOpen && (
-          <div className="fixed inset-0 z-40 lg:hidden">
-            <div className="absolute inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
-            <div className="absolute inset-y-0 left-0 flex w-72 max-w-[80vw] animate-fade-in flex-col border-r border-border-strong bg-surface shadow-2xl">
-              <Sidebar />
+          <div className="fixed inset-0 z-40 flex lg:hidden">
+            <div className="absolute inset-0 bg-black/50" onClick={closeSidebar} aria-hidden />
+            <div className="relative flex h-full min-h-0 w-[min(100%,20rem)] max-w-[85vw] animate-fade-in flex-col border-r border-border-strong bg-surface shadow-2xl">
+              <Sidebar onNavigate={closeSidebar} />
             </div>
           </div>
         )}
 
         <main
           className={cx(
-            'grid min-h-0',
+            'grid min-h-0 min-w-0',
             'grid-rows-[minmax(0,1fr)_minmax(0,1fr)]',
-            'xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:grid-rows-1',
+            'lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:grid-rows-1',
           )}
         >
           {webhooksPanelActive ? <WebhooksWorkbench /> : <RequestPanel />}
@@ -74,7 +78,7 @@ export function App() {
 
   if (bootstrapping) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-bg text-text-faint">
+      <div className="flex min-h-[100dvh] items-center justify-center bg-bg text-text-faint">
         <span className="text-sm">…</span>
       </div>
     );

@@ -5,6 +5,7 @@ import { useAuth } from '../store/auth';
 import { useLibrary } from '../store/library';
 import { useWebhooks } from '../store/webhooks';
 import { useRequestStore } from '../store/requestStore';
+import { confirmDialog, promptDialog, secretDialog } from '../lib/dialog';
 import { relativeTime, statusColor } from '../lib/format';
 import { MethodBadge } from './MethodBadge';
 import { WebhookUrlCopy } from './WebhookTutorial';
@@ -13,7 +14,10 @@ import { CountBadge, Tabs, cx } from './ui';
 
 type TabId = 'history' | 'collections' | 'webhooks';
 
-export function Sidebar() {
+const rowActionBtn =
+  'inline-flex h-7 w-7 shrink-0 items-center justify-center rounded text-text-faint hover:text-text max-lg:flex lg:hidden lg:group-hover:inline-flex';
+
+export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useT();
   const [tab, setTab] = useState<TabId>('history');
   const history = useLibrary((s) => s.history);
@@ -35,8 +39,8 @@ export function Sidebar() {
       : 'sidebar.db_unavailable';
 
   return (
-    <aside className="flex min-h-0 w-full flex-col bg-surface/40">
-      <div className="px-3 pt-2">
+    <aside className="flex h-full min-h-0 w-full flex-col bg-surface/40">
+      <div className="shrink-0 px-2 pt-2 sm:px-3">
         <Tabs
           active={tab}
           onSelect={(id) => setTab(id as TabId)}
@@ -54,19 +58,19 @@ export function Sidebar() {
         )}
       >
         {tab === 'history' ? (
-          <HistoryList />
+          <HistoryList onNavigate={onNavigate} />
         ) : tab === 'collections' ? (
-          <CollectionsList />
+          <CollectionsList onNavigate={onNavigate} />
         ) : (
-          <WebhooksSidebar />
+          <WebhooksSidebar onNavigate={onNavigate} />
         )}
       </div>
-      <p className="border-t border-border px-3 py-2 text-2xs leading-snug text-text-faint">{t(footerKey)}</p>
+      <p className="shrink-0 border-t border-border px-3 py-2 text-2xs leading-snug text-text-faint">{t(footerKey)}</p>
     </aside>
   );
 }
 
-function HistoryList() {
+function HistoryList({ onNavigate }: { onNavigate?: () => void }) {
   const { t, lang } = useT();
   const history = useLibrary((s) => s.history);
   const clearAll = useLibrary((s) => s.clearAllHistory);
@@ -86,8 +90,13 @@ function HistoryList() {
       <div className="flex justify-end px-1 pb-1">
         <button
           type="button"
-          onClick={() => {
-            if (window.confirm(t('sidebar.clear_history_confirm'))) void clearAll();
+          onClick={async () => {
+            const ok = await confirmDialog(t('sidebar.clear_history_confirm'), {
+              title: t('sidebar.clear'),
+              danger: true,
+              confirmLabel: t('sidebar.clear'),
+            });
+            if (ok) void clearAll();
           }}
           className="text-2xs font-medium text-text-faint transition-colors hover:text-danger"
         >
@@ -97,7 +106,10 @@ function HistoryList() {
       {history.map((entry) => (
         <button
           key={entry.id}
-          onClick={() => loadFromHistory(entry)}
+          onClick={() => {
+            loadFromHistory(entry);
+            onNavigate?.();
+          }}
           title={entry.url}
           className="group flex items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-surface-2"
         >
@@ -108,7 +120,7 @@ function HistoryList() {
           <span className="shrink-0 font-mono text-2xs" style={{ color: statusColor(entry.status) }}>
             {entry.status}
           </span>
-          <span className="w-10 shrink-0 text-right text-2xs text-text-faint">
+          <span className="hidden w-10 shrink-0 text-right text-2xs text-text-faint sm:inline">
             {relativeTime(entry.at, lang)}
           </span>
         </button>
@@ -117,7 +129,7 @@ function HistoryList() {
   );
 }
 
-function CollectionsList() {
+function CollectionsList({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useT();
   const collections = useLibrary((s) => s.collections);
   const dbStatus = useLibrary((s) => s.dbStatus);
@@ -166,13 +178,13 @@ function CollectionsList() {
       {collections.length === 0 ? (
         <Empty text={t('sidebar.empty_collections')} />
       ) : (
-        collections.map((c) => <CollectionItem key={c.id} id={c.id} />)
+        collections.map((c) => <CollectionItem key={c.id} id={c.id} onNavigate={onNavigate} />)
       )}
     </div>
   );
 }
 
-function CollectionItem({ id }: { id: string }) {
+function CollectionItem({ id, onNavigate }: { id: string; onNavigate?: () => void }) {
   const { t } = useT();
   const collection = useLibrary((s) => s.collections.find((c) => c.id === id));
   const renameCollection = useLibrary((s) => s.renameCollection);
@@ -204,11 +216,13 @@ function CollectionItem({ id }: { id: string }) {
           type="button"
           aria-label={t('sidebar.rename')}
           title={t('sidebar.rename')}
-          onClick={() => {
-            const next = window.prompt(t('sidebar.rename'), collection.name);
+          onClick={async () => {
+            const next = await promptDialog(t('sidebar.rename'), collection.name, {
+              label: t('sidebar.collection_name'),
+            });
             if (next != null) void renameCollection(id, next);
           }}
-          className="hidden h-6 w-6 items-center justify-center rounded text-text-faint hover:text-text group-hover:flex"
+          className={rowActionBtn}
         >
           <PencilIcon width={13} height={13} />
         </button>
@@ -216,8 +230,15 @@ function CollectionItem({ id }: { id: string }) {
           type="button"
           aria-label={t('sidebar.delete')}
           title={t('sidebar.delete')}
-          onClick={() => void deleteCollection(id)}
-          className="hidden h-6 w-6 items-center justify-center rounded text-text-faint hover:text-danger group-hover:flex"
+          onClick={async () => {
+            const ok = await confirmDialog(t('sidebar.delete_collection_confirm'), {
+              title: t('sidebar.delete'),
+              danger: true,
+              confirmLabel: t('sidebar.delete'),
+            });
+            if (ok) void deleteCollection(id);
+          }}
+          className={cx(rowActionBtn, 'hover:text-danger')}
         >
           <TrashIcon width={13} height={13} />
         </button>
@@ -230,7 +251,10 @@ function CollectionItem({ id }: { id: string }) {
               key={req.id}
               name={req.name}
               spec={req.spec}
-              onLoad={() => loadSpec(req.spec)}
+              onLoad={() => {
+                loadSpec(req.spec);
+                onNavigate?.();
+              }}
               onRemove={() => void removeSaved(id, req.id)}
             />
           ))}
@@ -263,7 +287,7 @@ function SavedRow({
         aria-label={t('sidebar.delete')}
         title={t('sidebar.delete')}
         onClick={onRemove}
-        className="hidden h-5 w-5 items-center justify-center rounded text-text-faint hover:text-danger group-hover:flex"
+        className={cx(rowActionBtn, 'h-5 w-5 hover:text-danger')}
       >
         <TrashIcon width={12} height={12} />
       </button>
@@ -275,7 +299,7 @@ function Empty({ text }: { text: string }) {
   return <p className="px-2 py-6 text-center text-xs leading-relaxed text-text-faint">{text}</p>;
 }
 
-function WebhooksSidebar() {
+function WebhooksSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useT();
   const dbStatus = useLibrary((s) => s.dbStatus);
 
@@ -288,23 +312,23 @@ function WebhooksSidebar() {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex min-h-0 flex-1 flex-col border-b border-border">
+    <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_minmax(0,1fr)]">
+      <section className="flex min-h-0 flex-col overflow-hidden border-b border-border">
         <p className="shrink-0 px-3 py-1.5 text-2xs font-semibold uppercase tracking-wide text-text-faint">
           {t('webhooks.endpoints')}
         </p>
         <div className="scroll-thin min-h-0 flex-1 overflow-y-auto p-2">
-          <WebhooksEndpointsList />
+          <WebhooksEndpointsList onNavigate={onNavigate} />
         </div>
-      </div>
-      <div className="flex min-h-0 flex-1 flex-col">
-        <WebhooksReceiptsList />
-      </div>
+      </section>
+      <section className="flex min-h-0 flex-col overflow-hidden">
+        <WebhooksReceiptsList onNavigate={onNavigate} />
+      </section>
     </div>
   );
 }
 
-function WebhooksEndpointsList() {
+function WebhooksEndpointsList({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useT();
   const endpoints = useWebhooks((s) => s.endpoints);
   const selectedWebhookId = useWebhooks((s) => s.selectedWebhookId);
@@ -331,7 +355,7 @@ function WebhooksEndpointsList() {
               e.preventDefault();
               if (!name.trim()) return;
               void createEndpoint(name.trim(), withSecret).then(({ secret }) => {
-                if (secret) window.alert(`${t('webhooks.secret_created')}\n\n${secret}`);
+                if (secret) void secretDialog(t('webhooks.secret_created'), t('webhooks.secret_save_hint'), secret);
               });
               setName('');
               setWithSecret(false);
@@ -376,13 +400,25 @@ function WebhooksEndpointsList() {
             key={endpoint.id}
             endpoint={endpoint}
             selected={selectedWebhookId === endpoint.id}
-            onSelect={() => void selectWebhook(endpoint.id)}
-            onRename={() => {
-              const next = window.prompt(t('sidebar.rename'), endpoint.name);
+            onSelect={() => {
+              void selectWebhook(endpoint.id);
+              onNavigate?.();
+            }}
+            onRename={async () => {
+              const next = await promptDialog(t('sidebar.rename'), endpoint.name, {
+                label: t('webhooks.name'),
+              });
               if (next != null) void renameEndpoint(endpoint.id, next);
             }}
             onToggle={() => void toggleEndpoint(endpoint.id, !endpoint.enabled)}
-            onDelete={() => void deleteEndpoint(endpoint.id)}
+            onDelete={async () => {
+              const ok = await confirmDialog(t('webhooks.delete_confirm'), {
+                title: t('sidebar.delete'),
+                danger: true,
+                confirmLabel: t('sidebar.delete'),
+              });
+              if (ok) void deleteEndpoint(endpoint.id);
+            }}
           />
         ))
       )}
@@ -425,14 +461,14 @@ function WebhookEndpointItem({
           type="button"
           aria-label={t('sidebar.rename')}
           onClick={onRename}
-          className="hidden h-6 w-6 items-center justify-center rounded text-text-faint hover:text-text group-hover:flex"
+          className={rowActionBtn}
         >
           <PencilIcon width={13} height={13} />
         </button>
         <button
           type="button"
           onClick={onToggle}
-          className="hidden text-2xs text-text-faint hover:text-text group-hover:inline"
+          className="shrink-0 px-1 text-2xs text-text-faint hover:text-text max-lg:inline lg:hidden lg:group-hover:inline"
         >
           {endpoint.enabled ? t('webhooks.disable') : t('webhooks.enable')}
         </button>
@@ -440,7 +476,7 @@ function WebhookEndpointItem({
           type="button"
           aria-label={t('sidebar.delete')}
           onClick={onDelete}
-          className="hidden h-6 w-6 items-center justify-center rounded text-text-faint hover:text-danger group-hover:flex"
+          className={cx(rowActionBtn, 'hover:text-danger')}
         >
           <TrashIcon width={13} height={13} />
         </button>
@@ -449,7 +485,7 @@ function WebhookEndpointItem({
   );
 }
 
-function WebhooksReceiptsList() {
+function WebhooksReceiptsList({ onNavigate }: { onNavigate?: () => void }) {
   const { t, lang } = useT();
   const selectedWebhookId = useWebhooks((s) => s.selectedWebhookId);
   const receipts = useWebhooks((s) => s.receipts);
@@ -466,10 +502,13 @@ function WebhooksReceiptsList() {
         {selectedWebhookId && receipts.length > 0 && (
           <button
             type="button"
-            onClick={() => {
-              if (window.confirm(t('webhooks.clear_receipts_confirm'))) {
-                void clearReceipts(selectedWebhookId);
-              }
+            onClick={async () => {
+              const ok = await confirmDialog(t('webhooks.clear_receipts_confirm'), {
+                title: t('sidebar.clear'),
+                danger: true,
+                confirmLabel: t('sidebar.clear'),
+              });
+              if (ok) void clearReceipts(selectedWebhookId);
             }}
             className="text-2xs font-medium text-text-faint transition-colors hover:text-danger"
           >
@@ -488,7 +527,10 @@ function WebhooksReceiptsList() {
               <button
                 key={receipt.id}
                 type="button"
-                onClick={() => void selectReceipt(receipt.id)}
+                onClick={() => {
+                  void selectReceipt(receipt.id);
+                  onNavigate?.();
+                }}
                 className={cx(
                   'group flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-surface-2',
                   selectedReceipt?.id === receipt.id && 'bg-surface-2',
@@ -506,7 +548,7 @@ function WebhooksReceiptsList() {
                 >
                   {receipt.responseStatus}
                 </span>
-                <span className="w-9 shrink-0 text-right text-2xs text-text-faint">
+                <span className="hidden w-9 shrink-0 text-right text-2xs text-text-faint sm:inline">
                   {relativeTime(receipt.receivedAt, lang)}
                 </span>
               </button>
