@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { RequestPanel } from './components/RequestPanel';
 import { ResponsePanel } from './components/ResponsePanel';
 import { WebhookReceiptPanel } from './components/WebhookReceiptPanel';
@@ -11,6 +11,15 @@ import { AuthPage } from './pages/AuthPage';
 import { useAuth } from './store/auth';
 import { useLibrary } from './store/library';
 import { useWebhooks } from './store/webhooks';
+
+function MainDetail({ main, detail }: { main: ReactNode; detail: ReactNode }) {
+  return (
+    <>
+      <div className="flex h-full min-h-0 flex-col animate-fade-in">{main}</div>
+      <div className="flex h-full min-h-0 flex-col animate-fade-in [animation-delay:40ms]">{detail}</div>
+    </>
+  );
+}
 
 function WorkbenchApp() {
   const init = useLibrary((s) => s.init);
@@ -55,29 +64,9 @@ function WorkbenchApp() {
           )}
         >
           {webhooksPanelActive ? (
-            <>
-              <div key="webhooks-main" className="flex h-full min-h-0 flex-col animate-fade-in">
-                <WebhooksWorkbench />
-              </div>
-              <div
-                key="webhooks-detail"
-                className="flex h-full min-h-0 flex-col animate-fade-in [animation-delay:40ms]"
-              >
-                <WebhookReceiptPanel />
-              </div>
-            </>
+            <MainDetail main={<WebhooksWorkbench />} detail={<WebhookReceiptPanel />} />
           ) : (
-            <>
-              <div key="request-main" className="flex h-full min-h-0 flex-col animate-fade-in">
-                <RequestPanel />
-              </div>
-              <div
-                key="request-detail"
-                className="flex h-full min-h-0 flex-col animate-fade-in [animation-delay:40ms]"
-              >
-                <ResponsePanel />
-              </div>
-            </>
+            <MainDetail main={<RequestPanel />} detail={<ResponsePanel />} />
           )}
         </main>
       </div>

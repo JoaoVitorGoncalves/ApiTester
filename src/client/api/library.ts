@@ -24,7 +24,16 @@ export function libraryHeaders(): Headers {
   return headers;
 }
 
-async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+export async function readApiError(res: Response): Promise<string> {
+  try {
+    const body = (await res.json()) as { error?: string };
+    return body.error ?? res.statusText;
+  } catch {
+    return res.statusText;
+  }
+}
+
+export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = libraryHeaders();
   if (init?.headers) {
     new Headers(init.headers).forEach((v, k) => headers.set(k, v));
@@ -35,14 +44,7 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 
   const res = await fetch(path, { ...init, headers });
   if (!res.ok) {
-    let message = res.statusText;
-    try {
-      const body = (await res.json()) as { error?: string };
-      if (body.error) message = body.error;
-    } catch {
-      // ignore
-    }
-    throw new ApiError(message, res.status);
+    throw new ApiError(await readApiError(res), res.status);
   }
   if (res.status === 204) return undefined as T;
   return (await res.json()) as T;

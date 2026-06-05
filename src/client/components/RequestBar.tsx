@@ -32,7 +32,6 @@ export function RequestBar({
     }
   }
 
-  // Pasting a full cURL command auto-fills every field.
   function onPaste(e: ClipboardEvent<HTMLInputElement>) {
     const text = e.clipboardData.getData('text');
     if (/^\s*curl\s/i.test(text)) {

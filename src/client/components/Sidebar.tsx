@@ -133,13 +133,13 @@ function CollectionsList({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useT();
   const collections = useLibrary((s) => s.collections);
   const dbStatus = useLibrary((s) => s.dbStatus);
+  const createCollection = useLibrary((s) => s.createCollection);
+  const [creating, setCreating] = useState(false);
+  const [name, setName] = useState('');
 
   if (dbStatus !== 'ok') {
     return <Empty text={t('sidebar.db_unavailable')} />;
   }
-  const createCollection = useLibrary((s) => s.createCollection);
-  const [creating, setCreating] = useState(false);
-  const [name, setName] = useState('');
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -334,17 +334,11 @@ function WebhooksEndpointsList({ onNavigate }: { onNavigate?: () => void }) {
   const selectedWebhookId = useWebhooks((s) => s.selectedWebhookId);
   const selectWebhook = useWebhooks((s) => s.selectWebhook);
   const createEndpoint = useWebhooks((s) => s.createEndpoint);
-  const renameEndpoint = useWebhooks((s) => s.renameEndpoint);
-  const toggleEndpoint = useWebhooks((s) => s.toggleEndpoint);
+  const updateEndpointSettings = useWebhooks((s) => s.updateEndpointSettings);
   const deleteEndpoint = useWebhooks((s) => s.deleteEndpoint);
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState('');
   const [withSecret, setWithSecret] = useState(false);
-
-  useEffect(() => {
-    if (endpoints.length === 0 || selectedWebhookId) return;
-    void selectWebhook(endpoints[0].id);
-  }, [endpoints, selectedWebhookId, selectWebhook]);
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -408,9 +402,9 @@ function WebhooksEndpointsList({ onNavigate }: { onNavigate?: () => void }) {
               const next = await promptDialog(t('sidebar.rename'), endpoint.name, {
                 label: t('webhooks.name'),
               });
-              if (next != null) void renameEndpoint(endpoint.id, next);
+              if (next != null) void updateEndpointSettings(endpoint.id, { name: next });
             }}
-            onToggle={() => void toggleEndpoint(endpoint.id, !endpoint.enabled)}
+            onToggle={() => void updateEndpointSettings(endpoint.id, { enabled: !endpoint.enabled })}
             onDelete={async () => {
               const ok = await confirmDialog(t('webhooks.delete_confirm'), {
                 title: t('sidebar.delete'),

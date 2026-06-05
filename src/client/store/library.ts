@@ -123,7 +123,6 @@ export const useLibrary = create<LibraryState>((set, get) => ({
   },
 }));
 
-/** Append a completed request to history when saving is enabled. */
 export async function recordHistory(spec: RequestSpec, result: ResponseResult): Promise<void> {
   if (!usePrefs.getState().saveHistory) return;
 
@@ -135,6 +134,6 @@ export async function recordHistory(spec: RequestSpec, result: ResponseResult): 
     await postHistory(entry);
     useLibrary.setState((s) => ({ history: [entry, ...s.history].slice(0, 100) }));
   } catch {
-    // History save is best-effort; do not block the send flow.
+    /* best-effort */
   }
 }

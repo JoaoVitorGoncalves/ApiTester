@@ -4,7 +4,8 @@ import { copyText } from '../lib/clipboard';
 import { prettyMaybeJson, statusColor } from '../lib/format';
 import { useWebhooks } from '../store/webhooks';
 import { CheckIcon, CopyIcon } from './icons';
-import { Tabs, cx } from './ui';
+import { headersText, MiniToggle, Stat } from './panelBits';
+import { Tabs } from './ui';
 
 type TabId = 'body' | 'headers' | 'query';
 
@@ -147,15 +148,6 @@ function MethodLine({ method }: { method: string }) {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-baseline gap-1.5 text-xs">
-      <span className="text-text-faint">{label}</span>
-      <span className="font-mono font-medium text-text-dim">{value}</span>
-    </div>
-  );
-}
-
 function KeyValueList({ entries }: { entries: Record<string, string> }) {
   return (
     <dl className="flex flex-col">
@@ -170,35 +162,6 @@ function KeyValueList({ entries }: { entries: Record<string, string> }) {
       ))}
     </dl>
   );
-}
-
-function MiniToggle({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cx(
-        'af-interactive rounded px-2 py-0.5 text-2xs font-medium',
-        active ? 'bg-accent-soft text-accent' : 'text-text-faint hover:text-text-dim',
-      )}
-    >
-      {children}
-    </button>
-  );
-}
-
-function headersText(headers: Record<string, string>): string {
-  return Object.entries(headers)
-    .map(([k, v]) => `${k}: ${v}`)
-    .join('\n');
 }
 
 function queryText(query: Record<string, string>): string {

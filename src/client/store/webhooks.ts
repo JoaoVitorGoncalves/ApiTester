@@ -30,8 +30,6 @@ interface WebhooksState {
   startPolling: () => void;
   stopPolling: () => void;
   createEndpoint: (name: string, generateSecret?: boolean) => Promise<{ secret: string | null }>;
-  renameEndpoint: (id: string, name: string) => Promise<void>;
-  toggleEndpoint: (id: string, enabled: boolean) => Promise<void>;
   updateEndpointSettings: (
     id: string,
     patch: {
@@ -49,6 +47,16 @@ interface WebhooksState {
 
 let pollTimer: ReturnType<typeof setInterval> | null = null;
 let pollGen = 0;
+
+function replaceEndpoint(
+  set: (partial: Partial<WebhooksState> | ((state: WebhooksState) => Partial<WebhooksState>)) => void,
+  id: string,
+  endpoint: WebhookEndpoint,
+) {
+  set((s) => ({
+    endpoints: s.endpoints.map((e) => (e.id === id ? endpoint : e)),
+  }));
+}
 
 export const useWebhooks = create<WebhooksState>((set, get) => ({
   endpoints: [],
@@ -75,7 +83,11 @@ export const useWebhooks = create<WebhooksState>((set, get) => ({
     if (useLibrary.getState().dbStatus !== 'ok') return;
     try {
       const endpoints = await fetchWebhookEndpoints();
-      set({ endpoints, lastError: null });
+      const current = get().selectedWebhookId;
+      const selectedWebhookId =
+        current && endpoints.some((e) => e.id === current) ? current : endpoints[0]?.id ?? null;
+      set({ endpoints, selectedWebhookId, lastError: null });
+      if (selectedWebhookId) await get().refreshReceipts();
     } catch (err) {
       const message = err instanceof ApiError ? err.message : 'Failed to load webhooks.';
       set({ lastError: message });
@@ -157,40 +169,20 @@ export const useWebhooks = create<WebhooksState>((set, get) => ({
     return { secret };
   },
 
-  renameEndpoint: async (id, name) => {
-    const { endpoint } = await updateWebhookEndpoint(id, { name: name.trim() });
-    set((s) => ({
-      endpoints: s.endpoints.map((e) => (e.id === id ? endpoint : e)),
-    }));
-  },
-
-  toggleEndpoint: async (id, enabled) => {
-    const { endpoint } = await updateWebhookEndpoint(id, { enabled });
-    set((s) => ({
-      endpoints: s.endpoints.map((e) => (e.id === id ? endpoint : e)),
-    }));
-  },
-
   updateEndpointSettings: async (id, patch) => {
     const { endpoint } = await updateWebhookEndpoint(id, patch);
-    set((s) => ({
-      endpoints: s.endpoints.map((e) => (e.id === id ? endpoint : e)),
-    }));
+    replaceEndpoint(set, id, endpoint);
   },
 
   regenerateSecret: async (id) => {
     const { endpoint, secret } = await updateWebhookEndpoint(id, { generateSecret: true });
-    set((s) => ({
-      endpoints: s.endpoints.map((e) => (e.id === id ? endpoint : e)),
-    }));
+    replaceEndpoint(set, id, endpoint);
     return { secret };
   },
 
   clearSecret: async (id) => {
     const { endpoint } = await updateWebhookEndpoint(id, { clearSecret: true });
-    set((s) => ({
-      endpoints: s.endpoints.map((e) => (e.id === id ? endpoint : e)),
-    }));
+    replaceEndpoint(set, id, endpoint);
   },
 
   deleteEndpoint: async (id) => {

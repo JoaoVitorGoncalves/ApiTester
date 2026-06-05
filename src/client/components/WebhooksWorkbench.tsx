@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import type { WebhookEndpoint } from '@core/types';
 import { confirmDialog, secretDialog } from '../lib/dialog';
 import { webhookInboxUrl } from '../api/webhooks';
@@ -17,11 +17,6 @@ export function WebhooksWorkbench() {
   const selectedWebhookId = useWebhooks((s) => s.selectedWebhookId);
   const endpoints = useWebhooks((s) => s.endpoints);
   const selected = endpoints.find((e) => e.id === selectedWebhookId) ?? null;
-
-  useEffect(() => {
-    if (endpoints.length === 0 || selectedWebhookId) return;
-    void useWebhooks.getState().selectWebhook(endpoints[0].id);
-  }, [endpoints, selectedWebhookId]);
 
   if (dbStatus !== 'ok') {
     return (

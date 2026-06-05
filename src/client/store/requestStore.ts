@@ -82,14 +82,10 @@ export const useRequestStore = create<RequestState>((set, get) => ({
     const controller = new AbortController();
     set({ sending: true, controller, response: null });
     const spec = get().spec;
-    try {
-      const { result } = await sendRequest(spec, controller.signal);
-      set({ response: result, sending: false, controller: null });
-      if (result.status > 0 && !result.error) {
-        void recordHistory(spec, result);
-      }
-    } catch {
-      set({ sending: false, controller: null });
+    const { result } = await sendRequest(spec, controller.signal);
+    set({ response: result, sending: false, controller: null });
+    if (result.status > 0 && !result.error) {
+      void recordHistory(spec, result);
     }
   },
 

@@ -37,14 +37,9 @@ export function AuthPage() {
     }
     setLocalError(null);
     setSubmitting(true);
-    try {
-      if (tab === 'login') await login(name, password);
-      else await register(name, password);
-    } catch {
-      // error stored in auth store
-    } finally {
-      setSubmitting(false);
-    }
+    if (tab === 'login') await login(name, password);
+    else await register(name, password);
+    setSubmitting(false);
   }
 
   const displayError = localError ?? serverError;

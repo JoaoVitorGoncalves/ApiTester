@@ -97,9 +97,7 @@ export const useAuth = create<AuthState>((set, get) => ({
       const data = await loginApi(name, password);
       applyAuth(set, data);
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : 'Login failed.';
-      set({ error: message });
-      throw err;
+      set({ error: err instanceof ApiError ? err.message : 'Login failed.' });
     }
   },
 
@@ -109,9 +107,7 @@ export const useAuth = create<AuthState>((set, get) => ({
       const data = await registerApi(name, password);
       applyAuth(set, data);
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : 'Registration failed.';
-      set({ error: message });
-      throw err;
+      set({ error: err instanceof ApiError ? err.message : 'Registration failed.' });
     }
   },
 
