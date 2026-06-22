@@ -6,6 +6,8 @@ COPY tsconfig.json postcss.config.js tailwind.config.ts vite.config.ts ./
 COPY index.html ./
 COPY public ./public
 COPY src ./src
+COPY migrations ./migrations
+COPY scripts ./scripts
 RUN npm run build && npm run build:server
 
 FROM node:22-alpine AS runner
