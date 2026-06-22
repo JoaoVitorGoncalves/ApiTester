@@ -1,0 +1,14 @@
+node_modules
+dist
+dist-server
+.env
+.env.*
+*.local
+*.tsbuildinfo
+.DS_Store
+npm-debug.log*
+.git
+.gitignore
+AGENTS.md
+.cursor
+docs
